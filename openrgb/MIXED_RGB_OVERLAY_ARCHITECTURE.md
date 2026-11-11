@@ -1,0 +1,79 @@
+# Mixed RGB overlay test architecture
+
+Status: design baseline for the `mixed-rgb-overlay-test` branch. This is not a flashable firmware build yet.
+
+## Target
+
+Replace the OpenRGB plugin's current continuously streamed Direct RGB workflow with a firmware-rendered Mixed RGB workflow. OpenRGB becomes the configuration UI; the keyboard renders the animation locally.
+
+The first test preset is intentionally limited to three effects:
+
+1. Layer 0 — fixed orange: a 23-LED mask, static orange, highest priority.
+2. Layer 1 — cyan-blue spiral: covers every LED not in the orange mask.
+3. Layer 2 — yellow reactive splash: reacts to keypresses on the non-orange LEDs and blends above the cyan base.
+
+The physical keycaps remain grey. The orange/cyan/yellow describe illumination only.
+
+## Existing firmware pieces
+
+- `app/src/rgb/keychron/mixed_rgb.c` already runs a two-layer effect list.
+- `app/src/rgb/keychron/keychron_rgb.c` already exposes layer/effect configuration and region data through Keychron's existing RGB command path.
+- `app/src/rgb/keychron/per_key_rgb.c` already contains a reactive splash implementation driven by `g_last_hit_tracker`.
+- `app/src/launcher/openrgb.c` currently exposes the separate `id_openrgb` (0x16) Direct RGB protocol.
+- `app/src/rgb/rgb_matrix_drivers.c` currently routes region writes directly to the LED strip and treats regions as exclusive IDs.
+
+## Rendering change
+
+Do not implement this as three exclusive regions. Convert the Mixed RGB region map to layer-membership masks and introduce a small per-frame layer buffer:
+
+- clear three layer buffers at the beginning of a Mixed RGB frame;
+- render each enabled layer into its own buffer;
+- composite in a deterministic order;
+- preserve the orange mask as a final, non-overwritable foreground;
+- flush one final RGB value per LED to the existing strip driver.
+
+The first compositor policy is:
+- cyan is the base;
+- yellow splash adds/blends over cyan while its reactive value is nonzero;
+- orange fixed keys overwrite all other layers.
+
+This avoids the current issue where each region writes straight to the strip and the last rendered layer simply wins.
+
+## Host/firmware protocol
+
+Keep the existing `id_openrgb` raw-HID transport and add a versioned Mixed RGB configuration command family. Do not stream 82 LED colors every frame from the PC.
+
+The protocol needs commands to:
+- query protocol version, LED count, layer count and supported test effects;
+- switch between firmware Mixed RGB rendering and legacy Direct RGB;
+- read/write a layer's effect, hue, saturation, speed and enable state;
+- read/write each layer's LED membership mask in bounded chunks;
+- request a save to persistent settings.
+
+Use 32-byte reports, validate every layer/index/count before copying, and keep the legacy Direct commands available as a recovery path. The first OpenRGB UI should expose only the three agreed effects and their basic settings, not the full Keychron effect catalogue.
+
+## OpenRGB plugin
+
+The existing `naaraxi/keychron_ultra_openrgb` repository is archived and read-only, so development must happen in a writable fork/new plugin repository or in this repository's `openrgb/plugin` subtree.
+
+The plugin should:
+- detect the keyboard and verify the new protocol version;
+- present a Mixed RGB mode instead of selecting Direct mode by default;
+- show three layer panels with effect selection and basic controls;
+- provide a key-layout mask editor for the fixed orange 23-key selection;
+- send configuration only when the user changes a setting;
+- leave the keyboard rendering independently if OpenRGB closes.
+
+## Test order
+
+1. Verify the new protocol can report 82 LEDs and three layers without changing lighting.
+2. Set Mixed RGB and verify the keyboard keeps rendering after OpenRGB closes.
+3. Test orange fixed mask alone.
+4. Test cyan spiral alone.
+5. Test yellow reactive splash alone.
+6. Enable all three and verify priority/overlay behavior.
+7. Build the OpenRGB controls around the proven protocol.
+
+## Open item
+
+The exact 23 orange-lit LED indices must be confirmed from the intended key layout before hard-coding the default mask. Until then, use a temporary editable mask and do not guess the 23 positions.

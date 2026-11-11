@@ -8,3 +8,11 @@ This copy adds a **Mixed RGB** device mode to the original Keychron Ultra OpenRG
 The plugin targets OpenRGB 1.0rc3 / plugin API v4, matching the original plugin. Build artifacts are produced by the `build-openrgb-plugin` GitHub Actions workflow.
 
 Install the resulting `OpenRGBKeychronUltraPlugin.dll` through OpenRGB → Settings → Plugins. The keyboard must be running firmware from this repository's `feature/cyan-blue-splash-overlay` branch (or a later compatible build).
+
+
+In OpenRGB, select the Keychron device and use its mode selector:
+
+- **Direct** for software-driven per-key output.
+- **Mixed RGB** to hand control back to the keyboard and activate the native three-layer effect stack.
+
+The Mixed RGB mode sends the same Keychron Launcher effect-selection command used by the firmware's own UI; it does not stream LED frames while active.

@@ -16,6 +16,7 @@
 
 #include "keychron_rgb_type.h"
 #include "../rgb_matrix_conf.h"
+#include "../rgb_matrix.h"
 #include "rgb_matrix_kb_config.h"
 #include <zephyr/settings/settings.h>
 #include <zephyr/kernel.h>
@@ -64,6 +65,7 @@ os_indicator_config_t os_ind_cfg;
 uint8_t retail_demo_enable;
 
 extern void update_mixed_rgb_effect_count(void);
+static uint8_t custom_rgb_layout_version;
 
 void eeconfig_reset_custom_rgb(void) {
     os_ind_cfg.disable.raw = 0;
@@ -106,6 +108,31 @@ int eeconfig_init_custom_rgb(void) {
         return rc;
     }
     settings_load_subtree("keychron");
+
+    // Apply the V1 Ultra orange/spiral layout once, preserving it on later boots.
+    if (custom_rgb_layout_version < 1) {
+        memcpy(regions, default_region, sizeof(regions));
+        memset(effect_list, 0, sizeof(effect_list));
+
+        effect_list[0][0].effect = RGB_EFFECT_SOLID_COLOR;
+        effect_list[0][0].hue = 20; // Orange
+        effect_list[0][0].sat = 255;
+        effect_list[0][0].speed = 127;
+        effect_list[0][0].time = 5000;
+
+        effect_list[1][0].effect = RGB_EFFECT_SPIRAL_BRIGHTNESS;
+        effect_list[1][0].hue = 145; // Light blue
+        effect_list[1][0].sat = 255;
+        effect_list[1][0].speed = 127;
+        effect_list[1][0].time = 5000;
+
+        custom_rgb_layout_version = 1;
+        settings_save_one("keychron/regions", (const void *)regions, sizeof(regions));
+        settings_save_one("keychron/effect_list", (const void *)effect_list, sizeof(effect_list));
+        settings_save_one("keychron/layout_version", (const void *)&custom_rgb_layout_version,
+                          sizeof(custom_rgb_layout_version));
+        zmk_rgb_matrix_mode(RGB_EFFECT_MIXED_RGB);
+    }
 
     update_mixed_rgb_effect_count();
 #ifdef CONFIG_RETAIL_DEMO_ENABLE
@@ -536,6 +563,15 @@ static int keychron_handle_set(const char *name, size_t len, settings_read_cb re
         int err = read_cb(cb_arg, regions, sizeof(regions));
         if (err <= 0) {
             LOG_ERR("Failed to read regions  from settings (err %d)", err);
+            return err;
+        }
+
+    } else if (settings_name_steq(name, "layout_version", NULL)) {
+        if (len != sizeof(custom_rgb_layout_version)) {
+            return -EINVAL;
+        }
+        int err = read_cb(cb_arg, &custom_rgb_layout_version, sizeof(custom_rgb_layout_version));
+        if (err <= 0) {
             return err;
         }
 

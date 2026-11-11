@@ -310,7 +310,7 @@ QWidget* OpenRGBKeychronUltraPlugin::GetWidget()
             {
                 if(keyList->item(i)->checkState() == Qt::Checked)
                 {
-                    newMasks[(size_t)i] = enabled0->isChecked() ? 0x01 : 0x06;
+                    newMasks[(size_t)i] = enabled0->isChecked() ? 0x01 : 0x07;
                     ++selected;
                 }
             }

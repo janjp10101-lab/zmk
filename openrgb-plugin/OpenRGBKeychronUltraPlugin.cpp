@@ -32,7 +32,7 @@ OpenRGBPluginInfo OpenRGBKeychronUltraPlugin::GetPluginInfo()
                           "V- and Q-series Ultra keyboards running custom ZMK firmware.";
     info.Version        = "0.6.0";
     info.Commit         = "";
-    info.URL            = "https://github.com/naaraxi/keychron_ultra_openrgb";
+    info.URL            = "https://github.com/janjp10101-lab/zmk/tree/feature/cyan-blue-splash-overlay/openrgb-plugin";
     info.Location       = OPENRGB_PLUGIN_LOCATION_SETTINGS;
     info.Label          = "Keychron Ultra";
     info.TabIconString  = "";

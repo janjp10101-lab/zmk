@@ -16,6 +16,9 @@
 #define SUB_SET_DIRECT_MODE      0x02
 #define SUB_SET_LEDS             0x03
 #define SUB_GET_LED_INFO         0x04
+#define SUB_MIXED_SET_EFFECTS    0x14
+#define SUB_SET_MIXED_MODE       0x15
+#define SUB_MIXED_SAVE           0x16
 
 #define KEEPALIVE_INTERVAL_MS    1500
 
@@ -300,8 +303,17 @@ void KeychronUltraController::SetDirectMode(bool enable)
 
 void KeychronUltraController::SetMixedRGBMode()
 {
-    // [id_custom_set_value, RGB matrix channel, effect value id, Mixed RGB].
-    // The firmware's RGB_EFFECT_MIXED_RGB enum value is 22.
+    unsigned char pkt[3] = { OPENRGB_CMD, SUB_SET_MIXED_MODE, 1 };
+    unsigned char resp[KEYCHRON_ULTRA_EPSIZE] = { 0 };
+
+    if(xfer(pkt, sizeof(pkt), resp) > 0 && resp[0] == OPENRGB_CMD
+       && resp[1] == SUB_SET_MIXED_MODE)
+    {
+        return;
+    }
+
+    // Compatibility fallback for older firmware that exposes only the
+    // Keychron Launcher custom-value command.
     unsigned char mode_pkt[4] = {
         KEYCHRON_ULTRA_ID_CUSTOM_SET_VALUE,
         KEYCHRON_ULTRA_RGB_MATRIX_CHANNEL,
@@ -310,12 +322,41 @@ void KeychronUltraController::SetMixedRGBMode()
     };
     xfer(mode_pkt, sizeof(mode_pkt), nullptr);
 
-    // Persist the selected onboard effect just as Keychron Launcher does.
     unsigned char save_pkt[2] = {
         KEYCHRON_ULTRA_ID_CUSTOM_SAVE,
         KEYCHRON_ULTRA_RGB_MATRIX_CHANNEL
     };
     xfer(save_pkt, sizeof(save_pkt), nullptr);
+}
+
+bool KeychronUltraController::SetMixedRGBLayerEffect(unsigned char layer,
+                                                       unsigned char effect,
+                                                       unsigned char hue,
+                                                       unsigned char sat,
+                                                       unsigned char speed)
+{
+    // One 8-byte effect record: effect, hue, saturation, speed, duration (LE u32).
+    unsigned char pkt[13] = {
+        OPENRGB_CMD, SUB_MIXED_SET_EFFECTS, layer, 0, 1,
+        effect, hue, sat, speed, 0, 0, 0, 0
+    };
+    unsigned char resp[KEYCHRON_ULTRA_EPSIZE] = { 0 };
+
+    return xfer(pkt, sizeof(pkt), resp) > 0
+        && resp[0] == OPENRGB_CMD
+        && resp[1] == SUB_MIXED_SET_EFFECTS
+        && resp[2] == 0;
+}
+
+bool KeychronUltraController::SaveMixedRGBSettings()
+{
+    unsigned char pkt[2] = { OPENRGB_CMD, SUB_MIXED_SAVE };
+    unsigned char resp[KEYCHRON_ULTRA_EPSIZE] = { 0 };
+
+    return xfer(pkt, sizeof(pkt), resp) > 0
+        && resp[0] == OPENRGB_CMD
+        && resp[1] == SUB_MIXED_SAVE
+        && resp[2] == 0;
 }
 
 void KeychronUltraController::EnsureDirect()

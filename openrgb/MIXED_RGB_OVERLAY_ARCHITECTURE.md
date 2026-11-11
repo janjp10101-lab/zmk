@@ -50,7 +50,7 @@ The protocol needs commands to:
 - read/write each layer's LED membership mask in bounded chunks;
 - request a save to persistent settings.
 
-Use 32-byte reports, validate every layer/index/count before copying, and keep the legacy Direct commands available as a recovery path. The firmware reports protocol version 1 so existing Direct-only plugin builds continue to detect it; Mixed RGB commands are additive. The first OpenRGB UI should expose only the three agreed effects and their basic settings, not the full Keychron effect catalogue.
+Use 32-byte reports, validate every layer/index/count before copying, and keep the legacy Direct commands available as a recovery path. The firmware reports protocol version 2. Legacy Direct commands remain available as a recovery path, but the new plugin requires protocol v2. The first OpenRGB UI should expose only the three agreed effects and their basic settings, not the full Keychron effect catalogue.
 
 ## OpenRGB plugin
 
@@ -76,4 +76,4 @@ The plugin should:
 
 ## Open item
 
-The 23 orange-lit LED indices are now encoded in `app/boards/shields/keychron_v1_ultra_ansi/rgb_matrix_config.h`. The plugin UI and hardware behavior still need implementation/verification. The archived upstream plugin is read-only; a writable fork or separate plugin repository is needed for the full three-layer UI.
+The 23 orange-lit LED indices are encoded in `app/boards/shields/keychron_v1_ultra_ansi/rgb_matrix_config.h` and preselected in the OpenRGB panel. Firmware compilation and plugin compilation pass; physical keyboard behavior and the final OpenRGB/HID round trip still require hardware testing. The original upstream plugin is preserved; a writable three-layer plugin implementation now lives in `openrgb/plugin/`. Its Linux CI build has passed. It exposes three effect layers, speed/enabled controls, the orange 23-key selector, and save-to-firmware.

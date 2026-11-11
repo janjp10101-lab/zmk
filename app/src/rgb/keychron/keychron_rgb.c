@@ -243,7 +243,7 @@ static bool mixed_rgb_get_effect_list(uint8_t *data) {
     uint8_t start = data[1];
     uint8_t count = data[2];
 
-    if (count > 3 || region > EFFECT_LAYERS || start + count > EFFECTS_PER_LAYER)
+    if (count > 3 || region >= EFFECT_LAYERS || start + count > EFFECTS_PER_LAYER)
         return false;
 
     for (uint8_t i = 0; i < count; i++) {
@@ -262,7 +262,7 @@ bool mixed_rgb_set_effect_list(uint8_t *data) {
     uint8_t start = data[1];
     uint8_t count = data[2];
 
-    if (count > 3 || region > EFFECT_LAYERS || start + count > EFFECTS_PER_LAYER)
+    if (count > 3 || region >= EFFECT_LAYERS || start + count > EFFECTS_PER_LAYER)
         return false;
     for (uint8_t i = 0; i < count; i++) {
         if (data[3 + i * EFFECT_DATA_LEN] >= RGB_EFFECT_MIXED_RGB)
@@ -539,15 +539,26 @@ static int keychron_handle_set(const char *name, size_t len, settings_read_cb re
         }
 
     } else if (settings_name_steq(name, "effect_list", NULL)) {
-        if (len != sizeof(effect_list)) {
-            LOG_ERR("Invalid effect_list size (got %d expected %d)", len, sizeof(effect_list));
+        const size_t old_effect_list_size = sizeof(effect_config_t) * 2 * EFFECTS_PER_LAYER;
+        if (len == old_effect_list_size) {
+            effect_config_t old_effect_list[2][EFFECTS_PER_LAYER] = {0};
+            int err = read_cb(cb_arg, old_effect_list, sizeof(old_effect_list));
+            if (err <= 0) {
+                LOG_ERR("Failed to read legacy effect_list from settings (err %d)", err);
+                return err;
+            }
+            memset(effect_list, 0, sizeof(effect_list));
+            memcpy(effect_list, old_effect_list, sizeof(old_effect_list));
+        } else if (len == sizeof(effect_list)) {
+            int err = read_cb(cb_arg, effect_list, sizeof(effect_list));
+            if (err <= 0) {
+                LOG_ERR("Failed to read effect_list from settings (err %d)", err);
+                return err;
+            }
+        } else {
+            LOG_ERR("Invalid effect_list size (got %d expected %d or %d)", len,
+                    sizeof(effect_list), old_effect_list_size);
             return -EINVAL;
-        }
-
-        int err = read_cb(cb_arg, effect_list, sizeof(effect_list));
-        if (err <= 0) {
-            LOG_ERR("Failed to read effect_list  from settings (err %d)", err);
-            return err;
         }
 
     }

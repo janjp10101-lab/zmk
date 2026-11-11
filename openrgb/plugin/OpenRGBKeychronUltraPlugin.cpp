@@ -181,7 +181,7 @@ void OpenRGBKeychronUltraPlugin::DetectControllers()
             | lost reply should not cost the user their keyboard.              |
             \*---------------------------------------------------------------*/
             unsigned int proto = ctrl->GetProtocolVersion();
-            if(proto > KEYCHRON_ULTRA_PROTOCOL_VERSION)
+            if(proto < KEYCHRON_ULTRA_PROTOCOL_VERSION)
             {
                 delete ctrl;
                 continue;
@@ -290,7 +290,7 @@ QWidget* OpenRGBKeychronUltraPlugin::GetWidget()
             {
                 if(keyList->item(i)->checkState() == Qt::Checked)
                 {
-                    newMasks[(size_t)i] = 0x01;
+                    newMasks[(size_t)i] = enabled0->isChecked() ? 0x01 : 0x06;
                     ++selected;
                 }
             }

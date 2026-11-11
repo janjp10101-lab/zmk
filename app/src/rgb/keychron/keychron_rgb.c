@@ -76,16 +76,30 @@ void eeconfig_reset_custom_rgb(void) {
     memcpy(regions, default_region, RGB_MATRIX_LED_COUNT);
     memset(effect_list, 0, sizeof(effect_list));
 
-    effect_list[0][0].effect = 5;
+    for (uint8_t i = 0; i < RGB_MATRIX_LED_COUNT; i++) {
+        per_key_led[i] = (HSV){21, 255, 255}; // orange fixed-key layer
+    }
+
+    // Layer 0: static per-key orange (membership mask selects the 23 keys).
+    effect_list[0][0].effect = RGB_EFFECT_PER_KEY_RGB;
+    effect_list[0][0].hue = 21;
     effect_list[0][0].sat = 255;
     effect_list[0][0].speed = 127;
-    effect_list[0][0].time = 5000;
+    effect_list[0][0].time = 0;
 
-    effect_list[1][0].effect = 2;
-    effect_list[1][0].hue = 0;
+    // Layer 1: cyan-blue spiral brightness, preserving the selected hue.
+    effect_list[1][0].effect = RGB_EFFECT_SPIRAL_BRIGHTNESS;
+    effect_list[1][0].hue = 137;
     effect_list[1][0].sat = 255;
     effect_list[1][0].speed = 127;
-    effect_list[1][0].time = 5000;
+    effect_list[1][0].time = 0;
+
+    // Layer 2: solid yellow reactive splash.
+    effect_list[2][0].effect = RGB_EFFECT_SOLID_SPLASH;
+    effect_list[2][0].hue = 43;
+    effect_list[2][0].sat = 255;
+    effect_list[2][0].speed = 127;
+    effect_list[2][0].time = 0;
 
     // update_mixed_rgb_effect_count();
     // kc_rgb_save();
@@ -243,7 +257,7 @@ static bool mixed_rgb_get_effect_list(uint8_t *data) {
     uint8_t start = data[1];
     uint8_t count = data[2];
 
-    if (count > 3 || region > EFFECT_LAYERS || start + count > EFFECTS_PER_LAYER)
+    if (count > 3 || region >= EFFECT_LAYERS || start + count > EFFECTS_PER_LAYER)
         return false;
 
     for (uint8_t i = 0; i < count; i++) {

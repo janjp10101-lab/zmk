@@ -35,7 +35,7 @@
 #define KEYCHRON_ULTRA_ID_CUSTOM_SAVE      0x09
 #define KEYCHRON_ULTRA_RGB_MATRIX_CHANNEL  0x03
 #define KEYCHRON_ULTRA_RGB_MATRIX_EFFECT   0x02
-#define KEYCHRON_ULTRA_RGB_EFFECT_MIXED    22
+#define KEYCHRON_ULTRA_RGB_EFFECT_MIXED    24
 
 /*---------------------------------------------------------*\
 | Highest protocol version this plugin knows how to speak.   |
@@ -43,7 +43,7 @@
 | be turned away instead of being driven with the wrong wire |
 | format.                                                    |
 \*---------------------------------------------------------*/
-#define KEYCHRON_ULTRA_PROTOCOL_VERSION 1
+#define KEYCHRON_ULTRA_PROTOCOL_VERSION 2
 
 /*---------------------------------------------------------*\
 | SET_LEDS and GET_LED_INFO carry the LED index in a single  |

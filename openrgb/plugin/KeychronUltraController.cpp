@@ -517,6 +517,30 @@ bool KeychronUltraController::SetMixedRegions(const std::vector<unsigned char>& 
     return(true);
 }
 
+bool KeychronUltraController::GetMixedEffect(unsigned int layer, unsigned char& effect,
+                                              unsigned char& hue, unsigned char& sat,
+                                              unsigned char& speed)
+{
+    if(layer >= 3)
+    {
+        return(false);
+    }
+    unsigned char pkt[5] = {
+        OPENRGB_CMD, SUB_MIXED_GET_EFFECTS, (unsigned char)layer, 0, 1
+    };
+    unsigned char resp[KEYCHRON_ULTRA_EPSIZE] = { 0 };
+    if(xfer(pkt, sizeof(pkt), resp) <= 0 || resp[0] != OPENRGB_CMD ||
+       resp[1] != SUB_MIXED_GET_EFFECTS || resp[2] != 0)
+    {
+        return(false);
+    }
+    effect = resp[3];
+    hue = resp[4];
+    sat = resp[5];
+    speed = resp[6];
+    return(true);
+}
+
 bool KeychronUltraController::SetMixedEffect(unsigned int layer, unsigned char effect,
                                               unsigned char hue, unsigned char sat,
                                               unsigned char speed)

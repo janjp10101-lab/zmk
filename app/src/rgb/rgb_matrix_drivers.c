@@ -180,9 +180,17 @@ void zmk_rgb_matrix_mixed_frame_flush(void) {
         if (mixed_layer_valid[2][i]) {
             RGB overlay = mixed_layer_frame[2][i];
             uint8_t alpha = MAX(overlay.r, MAX(overlay.g, overlay.b));
-            out.r = mixed_rgb_blend_channel(out.r, overlay.r, alpha);
-            out.g = mixed_rgb_blend_channel(out.g, overlay.g, alpha);
-            out.b = mixed_rgb_blend_channel(out.b, overlay.b, alpha);
+            if (alpha != 0) {
+                /* Normalize the already brightness-scaled effect color before
+                 * alpha blending, so a half-bright yellow splash stays half
+                 * bright instead of being multiplied by its brightness twice. */
+                overlay.r = (uint8_t)(((uint16_t)overlay.r * 255u) / alpha);
+                overlay.g = (uint8_t)(((uint16_t)overlay.g * 255u) / alpha);
+                overlay.b = (uint8_t)(((uint16_t)overlay.b * 255u) / alpha);
+                out.r = mixed_rgb_blend_channel(out.r, overlay.r, alpha);
+                out.g = mixed_rgb_blend_channel(out.g, overlay.g, alpha);
+                out.b = mixed_rgb_blend_channel(out.b, overlay.b, alpha);
+            }
         }
 
         /* Layer 0: fixed orange keys always win and cannot be overwritten. */

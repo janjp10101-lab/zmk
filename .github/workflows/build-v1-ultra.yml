@@ -2,7 +2,7 @@ name: build-v1-ultra
 
 on:
   push:
-    branches: [feature/third-rgb-layer]
+    branches: [feature/cyan-blue-splash-overlay]
 
 jobs:
   build:

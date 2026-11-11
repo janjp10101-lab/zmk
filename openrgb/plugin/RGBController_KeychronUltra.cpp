@@ -158,6 +158,12 @@ void RGBController_KeychronUltra::DeviceUpdateMode()
     }
 }
 
+bool RGBController_KeychronUltra::GetMixedInfo(unsigned int& layers, unsigned int& effects_per_layer)
+{
+    std::lock_guard<std::mutex> lock(controller_mutex);
+    return controller != nullptr && controller->GetMixedInfo(layers, effects_per_layer);
+}
+
 bool RGBController_KeychronUltra::GetMixedRegions(std::vector<unsigned char>& masks)
 {
     std::lock_guard<std::mutex> lock(controller_mutex);

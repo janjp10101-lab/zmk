@@ -51,8 +51,15 @@ HSV default_per_key_led[RGB_MATRIX_LED_COUNT] = {
     DC_YLW, DC_YLW, DC_YLW, DC_BLU, DC_YLW, DC_YLW, DC_YLW, DC_YLW, DC_YLW, DC_YLW,
 };
 
-// Default mixed RGB region
+// Default mixed RGB membership masks:
+// bit 0 = fixed orange keys, bit 1 = cyan-blue spiral, bit 2 = yellow reactive splash.
+// The cyan and yellow layers share the remaining 59 LEDs; the 23 orange LEDs are protected.
 uint8_t default_region[RGB_MATRIX_LED_COUNT] = {
-    [0 ... RGB_MATRIX_LED_COUNT - 1] = 0x06, // cyan base + yellow splash; orange mask is user-selected
+    [0 ... RGB_MATRIX_LED_COUNT - 1] = 0x06,
+    [0] = 0x07,  [5] = 0x07,  [6] = 0x07,  [7] = 0x07,  [8] = 0x07,
+    [13] = 0x07, [28] = 0x07, [29] = 0x07, [30] = 0x07, [43] = 0x07,
+    [44] = 0x07, [45] = 0x07, [56] = 0x07, [57] = 0x07, [58] = 0x07,
+    [59] = 0x07, [71] = 0x07, [72] = 0x07, [73] = 0x07, [74] = 0x07,
+    [76] = 0x07, [77] = 0x07, [78] = 0x07,
 };
 #endif

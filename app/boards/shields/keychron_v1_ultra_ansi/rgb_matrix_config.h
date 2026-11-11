@@ -53,8 +53,6 @@ HSV default_per_key_led[RGB_MATRIX_LED_COUNT] = {
 
 // Default mixed RGB region
 uint8_t default_region[RGB_MATRIX_LED_COUNT] = {
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    [0 ... RGB_MATRIX_LED_COUNT - 1] = 0x06, // cyan base + yellow splash; orange mask is user-selected
 };
 #endif

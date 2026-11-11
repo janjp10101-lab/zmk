@@ -1,0 +1,33 @@
+name: openrgb-mixed-rgb-plugin
+
+on:
+  push:
+    branches: [mixed-rgb-overlay-test]
+    paths:
+      - 'openrgb/plugin/**'
+      - '.github/workflows/openrgb-plugin-build.yml'
+  workflow_dispatch:
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Qt and HID development dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y qtbase5-dev qt5-qmake libhidapi-dev pkg-config build-essential git
+      - name: Fetch OpenRGB SDK
+        run: |
+          git clone --depth 1 --branch release_candidate_1.0rc3 --recurse-submodules https://github.com/CalcProgrammer1/OpenRGB.git openrgb/plugin/OpenRGB
+      - name: Build plugin
+        working-directory: openrgb/plugin
+        run: |
+          qmake OpenRGBKeychronUltraPlugin.pro
+          make -j2
+      - name: Upload plugin
+        uses: actions/upload-artifact@v4
+        with:
+          name: keychron-ultra-mixed-rgb-openrgb-linux
+          path: openrgb/plugin/libOpenRGBKeychronUltraPlugin.so
+          if-no-files-found: error

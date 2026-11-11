@@ -221,6 +221,14 @@ QWidget* OpenRGBKeychronUltraPlugin::GetWidget()
         return(panel);
     }
 
+    unsigned int layerCount = 0, effectsPerLayer = 0;
+    if(!target->GetMixedInfo(layerCount, effectsPerLayer) || layerCount != 3)
+    {
+        root->addWidget(new QLabel("This firmware does not expose the required three Mixed RGB layers."));
+        root->addStretch();
+        return(panel);
+    }
+
     const KeychronLayout* layout = target->GetLayout();
     std::vector<unsigned char> masks;
     if(!target->GetMixedRegions(masks))

@@ -19,7 +19,7 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #include "launcher.h"
 #include "../rgb/rgb_matrix.h"
 
-#define OPENRGB_PROTOCOL_VERSION 2
+#define OPENRGB_PROTOCOL_VERSION 1 /* additive Mixed RGB commands preserve v1 direct compatibility */
 
 // LED position/flag table (for OpenRGB's key-to-LED map).
 extern led_config_t g_led_config;

@@ -1,0 +1,41 @@
+name: openrgb-mixed-rgb-plugin-windows
+
+on:
+  push:
+    branches: [mixed-rgb-overlay-test]
+    paths:
+      - 'openrgb/plugin/**'
+      - '.github/workflows/openrgb-plugin-windows.yml'
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install MSVC build environment
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '5.15.2'
+          arch: win64_msvc2019_64
+          cache: true
+      - name: Fetch OpenRGB SDK
+        shell: pwsh
+        run: |
+          git clone --depth 1 --branch release_candidate_1.0rc3 --recurse-submodules https://github.com/CalcProgrammer1/OpenRGB.git openrgb/plugin/OpenRGB
+      - name: Build plugin
+        shell: cmd
+        working-directory: openrgb/plugin
+        run: |
+          qmake OpenRGBKeychronUltraPlugin.pro
+          nmake
+      - name: Upload Windows plugin
+        uses: actions/upload-artifact@v4
+        with:
+          name: keychron-ultra-mixed-rgb-openrgb-windows
+          path: openrgb/plugin/release/OpenRGBKeychronUltraPlugin.dll
+          if-no-files-found: error

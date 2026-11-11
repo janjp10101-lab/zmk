@@ -1,0 +1,33 @@
+name: build-v1-ultra
+
+on:
+  push:
+    branches: [feature/third-rgb-layer]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Build V1 Ultra ANSI firmware
+        run: |
+          docker run --rm -e HOME=/tmp -v "$PWD":/workspaces/zmk -w /workspaces/zmk \
+            zmkfirmware/zmk-build-arm:3.5 bash -lc '
+              set -e
+              git config --global --add safe.directory /workspaces/zmk
+              if [ ! -d zephyr ] || [ ! -d modules ]; then
+                west init -l app
+                west update
+                west zephyr-export
+              fi
+              west build -s app -p -b keychron -d app/build -- -DSHIELD=keychron_v1_ultra_ansi
+              mkdir -p dist
+              cp app/build/zephyr/zmk.bin dist/keychron_v1_ultra_ansi.bin
+            '
+      - name: Upload firmware artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: keychron-v1-ultra-ansi-firmware
+          path: dist/keychron_v1_ultra_ansi.bin
+          if-no-files-found: error

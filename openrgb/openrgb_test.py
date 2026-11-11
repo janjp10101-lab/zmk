@@ -11,7 +11,9 @@ Needs permission to open /dev/hidraw: either run it with sudo, or install the
 udev rule next to this script (61-keychron-ultra-openrgb.rules).
 
   sudo ./openrgb_test.py count   # GET_LED_COUNT - proof of firmware (no visible change)
-  sudo ./openrgb_test.py demo    # enter direct mode, cycle R/G/B for ~30s, hand back
+  sudo ./openrgb_test.py demo    # legacy Direct RGB test
+  sudo ./openrgb_test.py mixed-info
+  sudo ./openrgb_test.py mixed-demo 1,2,3,...  # optional orange LED indexes
 """
 import os, sys, glob, select, time
 
@@ -86,6 +88,19 @@ def set_all(c, r, g, b, n):
         c.xfer(pkt, timeout=0.3)
         i += cnt
 
+def set_mixed_regions(c, masks):
+    # The firmware accepts at most 28 membership bytes per 32-byte report.
+    start = 0
+    while start < len(masks):
+        count = min(28, len(masks) - start)
+        c.xfer([RID, SUB_MIXED_SET_REGIONS, start, count] + masks[start:start + count])
+        start += count
+
+def set_mixed_effect(c, layer, effect, hue, sat=255, speed=127):
+    # 8-byte effect record: effect, hue, saturation, speed, duration (LE u32).
+    c.xfer([RID, SUB_MIXED_SET_EFFECTS, layer, 0, 1,
+            effect, hue, sat, speed, 0, 0, 0, 0])
+
 def main():
     mode = sys.argv[1] if len(sys.argv) > 1 else "count"
     dev = find_cmd_hidraw()
@@ -111,7 +126,38 @@ def main():
         if count > 256:
             print(f"   note: SET_LEDS addresses LEDs 0-255, so only the first 256 of "
                   f"{count} can be driven.")
-        if mode == "demo":
+        if mode == "mixed-info":
+            info = c.xfer([RID, SUB_MIXED_GET_INFO])
+            if info is None or info[0] == 0xFF:
+                print("!! Mixed RGB protocol not available")
+                sys.exit(1)
+            print(f"   Mixed RGB: {info[3]} layers, {info[4]} effects per layer")
+            if info[3] != 3:
+                print("!! expected three layers")
+                sys.exit(1)
+        elif mode == "mixed-demo":
+            orange = set()
+            if len(sys.argv) > 2 and sys.argv[2].strip():
+                orange = {int(v) for v in sys.argv[2].split(",") if v.strip()}
+            if any(v < 0 or v >= count for v in orange):
+                print("!! orange LED index out of range")
+                sys.exit(1)
+            info = c.xfer([RID, SUB_MIXED_GET_INFO])
+            if info is None or info[0] == 0xFF or info[3] != 3:
+                print("!! firmware does not report the three-layer Mixed RGB protocol")
+                sys.exit(1)
+            masks = [0x01 if i in orange else 0x06 for i in range(count)]
+            set_mixed_regions(c, masks)
+            set_mixed_effect(c, 0, 23, 21)   # fixed orange per-key layer
+            set_mixed_effect(c, 1, 3, 137)   # cyan-blue spiral brightness
+            set_mixed_effect(c, 2, 22, 43)   # solid yellow reactive splash
+            c.xfer([RID, SUB_SET_MIXED_MODE, 1])
+            c.xfer([RID, SUB_MIXED_SAVE])
+            print("   Mixed RGB enabled: orange fixed keys, cyan spiral, yellow reactive splash")
+            if not orange:
+                print("   no orange keys selected yet; pass their LED indexes as the second argument")
+            print("   keyboard renders locally; OpenRGB can close without stopping the effects")
+        elif mode == "demo":
             print("   entering direct mode; cycling RED/GREEN/BLUE ~30s ...")
             c.xfer([RID, SUB_SET_DIRECT, 1])
             end = 30

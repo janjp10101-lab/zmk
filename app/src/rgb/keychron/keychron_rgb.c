@@ -76,13 +76,14 @@ void eeconfig_reset_custom_rgb(void) {
     memcpy(regions, default_region, RGB_MATRIX_LED_COUNT);
     memset(effect_list, 0, sizeof(effect_list));
 
-    effect_list[0][0].effect = 5;
+    effect_list[0][0].effect = RGB_EFFECT_SOLID_COLOR;
+    effect_list[0][0].hue = 20; // Orange
     effect_list[0][0].sat = 255;
     effect_list[0][0].speed = 127;
     effect_list[0][0].time = 5000;
 
-    effect_list[1][0].effect = 2;
-    effect_list[1][0].hue = 0;
+    effect_list[1][0].effect = RGB_EFFECT_SPIRAL_BRIGHTNESS;
+    effect_list[1][0].hue = 145; // Light blue
     effect_list[1][0].sat = 255;
     effect_list[1][0].speed = 127;
     effect_list[1][0].time = 5000;

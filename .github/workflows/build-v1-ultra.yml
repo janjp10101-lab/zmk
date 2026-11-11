@@ -3,6 +3,14 @@ name: build-v1-ultra
 on:
   push:
     branches: [feature/cyan-blue-splash-overlay]
+    paths:
+      - 'app/**'
+      - 'openrgb/**'
+      - '.github/workflows/build-v1-ultra.yml'
+
+concurrency:
+  group: build-v1-ultra-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:

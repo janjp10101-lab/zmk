@@ -87,11 +87,13 @@ bool mixed_rgb(effect_params_t *params) {
         mixed_rgb_reset();
     }
 
-    // Render in ascending priority: orange base, cyan spiral, yellow overlay.
+    // Capture each layer separately; flush as one composited LED frame.
+    zmk_rgb_matrix_mixed_frame_begin();
     for (uint8_t i = 0; i < EFFECT_LAYERS; i++) {
         params->region = i;
         ret = multiple_rgb_effect_runner(params);
     }
+    zmk_rgb_matrix_mixed_frame_flush();
 
     return ret;
 }

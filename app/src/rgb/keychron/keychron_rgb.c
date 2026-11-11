@@ -65,6 +65,7 @@ os_indicator_config_t os_ind_cfg;
 uint8_t retail_demo_enable;
 
 extern void update_mixed_rgb_effect_count(void);
+extern void mixed_rgb_update_region_masks(void);
 static uint8_t custom_rgb_layout_version;
 
 void eeconfig_reset_custom_rgb(void) {
@@ -85,10 +86,16 @@ void eeconfig_reset_custom_rgb(void) {
     effect_list[0][0].time = 5000;
 
     effect_list[1][0].effect = RGB_EFFECT_SPIRAL_BRIGHTNESS;
-    effect_list[1][0].hue = 145; // Light blue
+    effect_list[1][0].hue = 138; // Cyan blue
     effect_list[1][0].sat = 255;
     effect_list[1][0].speed = 127;
     effect_list[1][0].time = 5000;
+
+    effect_list[2][0].effect = RGB_EFFECT_YELLOW_SPLASH_OVERLAY;
+    effect_list[2][0].hue = 43; // Yellow
+    effect_list[2][0].sat = 255;
+    effect_list[2][0].speed = 127;
+    effect_list[2][0].time = 5000;
 
     // update_mixed_rgb_effect_count();
     // kc_rgb_save();
@@ -110,7 +117,7 @@ int eeconfig_init_custom_rgb(void) {
     settings_load_subtree("keychron");
 
     // Apply the V1 Ultra orange/spiral layout once, preserving it on later boots.
-    if (custom_rgb_layout_version < 1) {
+    if (custom_rgb_layout_version < 2) {
         memcpy(regions, default_region, sizeof(regions));
         memset(effect_list, 0, sizeof(effect_list));
 
@@ -121,12 +128,18 @@ int eeconfig_init_custom_rgb(void) {
         effect_list[0][0].time = 5000;
 
         effect_list[1][0].effect = RGB_EFFECT_SPIRAL_BRIGHTNESS;
-        effect_list[1][0].hue = 145; // Light blue
+        effect_list[1][0].hue = 138; // Cyan blue
         effect_list[1][0].sat = 255;
         effect_list[1][0].speed = 127;
         effect_list[1][0].time = 5000;
 
-        custom_rgb_layout_version = 1;
+        effect_list[2][0].effect = RGB_EFFECT_YELLOW_SPLASH_OVERLAY;
+        effect_list[2][0].hue = 43; // Yellow
+        effect_list[2][0].sat = 255;
+        effect_list[2][0].speed = 127;
+        effect_list[2][0].time = 5000;
+
+        custom_rgb_layout_version = 2;
         settings_save_one("keychron/regions", (const void *)regions, sizeof(regions));
         settings_save_one("keychron/effect_list", (const void *)effect_list, sizeof(effect_list));
         settings_save_one("keychron/layout_version", (const void *)&custom_rgb_layout_version,
@@ -260,7 +273,7 @@ bool mixed_rgb_set_regions(uint8_t *data) {
             return false;
 
     memcpy(&regions[start], &data[2], count);
-    memcpy(&rgb_regions[start], &data[2], count);
+    mixed_rgb_update_region_masks();
 
     return true;
 }
@@ -293,7 +306,9 @@ bool mixed_rgb_set_effect_list(uint8_t *data) {
     if (count > 3 || region >= EFFECT_LAYERS || start + count > EFFECTS_PER_LAYER)
         return false;
     for (uint8_t i = 0; i < count; i++) {
-        if (data[3 + i * EFFECT_DATA_LEN] >= RGB_EFFECT_MIXED_RGB)
+        uint8_t effect = data[3 + i * EFFECT_DATA_LEN];
+        if (effect >= RGB_EFFECT_MIXED_RGB &&
+            !(region == 2 && effect == RGB_EFFECT_YELLOW_SPLASH_OVERLAY))
             return false;
     }
 

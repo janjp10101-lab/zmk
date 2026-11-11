@@ -137,6 +137,44 @@ bool per_key_rgb_reactive_splash(effect_params_t *params) {
                                                      &SPLASH_math);
 }
 
+bool yellow_splash_overlay(effect_params_t *params) {
+    RGB_MATRIX_USE_LIMITS(led_min, led_max);
+
+    uint8_t count = g_last_hit_tracker.count;
+    for (uint8_t i = led_min; i < led_max; i++) {
+        RGB_MATRIX_TEST_LED_FLAGS();
+
+        uint8_t splash_value = 0;
+        for (uint8_t j = 0; j < count; j++) {
+            int16_t dx = g_led_config.point[i].x - g_last_hit_tracker.x[j];
+            int16_t dy = g_led_config.point[i].y - g_last_hit_tracker.y[j];
+            uint8_t dist = sqrt16(dx * dx + dy * dy);
+            uint16_t tick =
+                scale16by8(g_last_hit_tracker.tick[j], qadd8(rgb_matrix_config.speed, 1));
+
+            // The wavefront travels outward from the pressed key. Only write
+            // while the yellow wave is active, leaving the cyan base untouched.
+            if (tick >= dist) {
+                uint16_t age = tick - dist;
+                if (age < 255) {
+                    uint8_t candidate = 255 - age;
+                    if (candidate > splash_value) {
+                        splash_value = candidate;
+                    }
+                }
+            }
+        }
+
+        if (splash_value > 0) {
+            HSV yellow = {43, 255, scale8(splash_value, rgb_matrix_config.hsv.v)};
+            RGB rgb = hsv_to_rgb(yellow);
+            zmk_rgb_matrix_region_set_color(params->region, i, rgb.r, rgb.g, rgb.b);
+        }
+    }
+
+    return zmk_rgb_matrix_check_finished_leds(led_max);
+}
+
 bool per_key_rgb(effect_params_t *params) {
     switch (per_key_rgb_type) {
     case PER_KEY_RGB_BREATHING:

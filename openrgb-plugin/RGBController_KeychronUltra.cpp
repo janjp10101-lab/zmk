@@ -213,6 +213,7 @@ bool RGBController_KeychronUltra::SaveMixedRGB()
 void RGBController_KeychronUltra::ActivateMixedRGB()
 {
     std::lock_guard<std::mutex> lock(controller_mutex);
+    active_mode = MODE_MIXED_RGB;
     if(controller != nullptr)
     {
         controller->SetDirectMode(false);

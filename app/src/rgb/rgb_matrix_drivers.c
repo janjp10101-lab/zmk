@@ -164,6 +164,17 @@ void zmk_rgb_matrix_mixed_frame_flush(void) {
     }
 
     for (uint8_t i = 0; i < RGB_MATRIX_LED_COUNT; i++) {
+        /*
+         * Effects are rendered in LED_PROCESS_LIMIT chunks. Each chunk starts
+         * a fresh capture, so LEDs outside the current chunk have no valid
+         * layer entries. Leave those LEDs untouched instead of writing black;
+         * otherwise the final chunk erases every earlier chunk.
+         */
+        if (!mixed_layer_valid[0][i] && !mixed_layer_valid[1][i] &&
+            !mixed_layer_valid[2][i]) {
+            continue;
+        }
+
         RGB out = {0, 0, 0};
 
         /* Cyan spiral base. */

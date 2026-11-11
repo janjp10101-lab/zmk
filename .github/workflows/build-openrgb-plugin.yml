@@ -1,0 +1,50 @@
+name: build-openrgb-plugin
+
+on:
+  push:
+    branches: [feature/cyan-blue-splash-overlay]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Checkout OpenRGB SDK (1.0rc3)
+        run: git clone --depth 1 --branch release_candidate_1.0rc3 https://gitlab.com/CalcProgrammer1/OpenRGB.git openrgb-plugin/OpenRGB
+
+      - name: Install Qt 5.15.0
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '5.15.0'
+          host: windows
+          target: desktop
+          arch: win64_msvc2019_64
+
+      - name: Set up MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Build plugin
+        shell: cmd
+        working-directory: openrgb-plugin
+        run: |
+          qmake OpenRGBKeychronUltraPlugin.pro CONFIG+=release
+          nmake
+
+      - name: Collect DLL
+        shell: cmd
+        working-directory: openrgb-plugin
+        run: |
+          if exist release\\OpenRGBKeychronUltraPlugin.dll copy release\\OpenRGBKeychronUltraPlugin.dll .
+          dir /s /b *.dll
+
+      - name: Upload plugin DLL
+        uses: actions/upload-artifact@v4
+        with:
+          name: OpenRGBKeychronUltraPlugin-x64-mixed-rgb
+          path: openrgb-plugin/**/OpenRGBKeychronUltraPlugin.dll
+          if-no-files-found: error

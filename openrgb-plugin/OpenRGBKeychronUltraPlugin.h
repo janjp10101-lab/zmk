@@ -42,6 +42,8 @@ private:
 
     void                DetectControllers();
     void                DropDeletedControllers();
+    bool                ApplyMixedLayers(bool orange, bool cyan, bool yellow, unsigned char cyan_speed, unsigned char yellow_speed);
+    bool                SaveMixedLayers();
 
     ResourceManagerInterface*                    rm = nullptr;
     std::vector<RGBController_KeychronUltra*>  registered;

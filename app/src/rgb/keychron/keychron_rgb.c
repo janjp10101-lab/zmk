@@ -300,9 +300,9 @@ void kc_rgb_save_worker(struct k_work *work) {
     settings_save_one("keychron/os_ind_cfg", (const void *)&os_ind_cfg, sizeof(os_ind_cfg));
     settings_save_one("keychron/per_key_rgb_type", (const void *)&per_key_rgb_type,
                       sizeof(per_key_rgb_type));
-    settings_save_one("keychron/per_key_led", (const void *)per_key_led, sizeof(per_key_led));
-    settings_save_one("keychron/regions", (const void *)regions, sizeof(regions));
-    settings_save_one("keychron/effect_list", (const void *)effect_list, sizeof(effect_list));
+    settings_save_one("keychron/per_key_led_v2", (const void *)per_key_led, sizeof(per_key_led));
+    settings_save_one("keychron/layer_masks_v2", (const void *)regions, sizeof(regions));
+    settings_save_one("keychron/effect_list_v2", (const void *)effect_list, sizeof(effect_list));
 }
 K_WORK_DELAYABLE_DEFINE(kc_rgb_save_work, kc_rgb_save_worker);
 
@@ -528,7 +528,7 @@ static int keychron_handle_set(const char *name, size_t len, settings_read_cb re
             return err;
         }
 
-    } else if (settings_name_steq(name, "per_key_led", NULL)) {
+    } else if (settings_name_steq(name, "per_key_led_v2", NULL)) {
         if (len != sizeof(per_key_led)) {
             LOG_ERR("Invalid per_key_led size (got %d expected %d)", len, sizeof(per_key_led));
             return -EINVAL;
@@ -540,7 +540,7 @@ static int keychron_handle_set(const char *name, size_t len, settings_read_cb re
             return err;
         }
 
-    } else if (settings_name_steq(name, "regions", NULL)) {
+    } else if (settings_name_steq(name, "layer_masks_v2", NULL)) {
         if (len != sizeof(regions)) {
             LOG_ERR("Invalid regions size (got %d expected %d)", len, sizeof(regions));
             return -EINVAL;
@@ -552,7 +552,7 @@ static int keychron_handle_set(const char *name, size_t len, settings_read_cb re
             return err;
         }
 
-    } else if (settings_name_steq(name, "effect_list", NULL)) {
+    } else if (settings_name_steq(name, "effect_list_v2", NULL)) {
         if (len != sizeof(effect_list)) {
             LOG_ERR("Invalid effect_list size (got %d expected %d)", len, sizeof(effect_list));
             return -EINVAL;

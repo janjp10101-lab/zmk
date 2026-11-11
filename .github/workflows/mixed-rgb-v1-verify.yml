@@ -1,0 +1,32 @@
+name: mixed-rgb-v1-verify
+
+on:
+  push:
+    branches: [mixed-rgb-overlay-test-verify]
+  workflow_dispatch:
+
+jobs:
+  build-v1-ultra:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Build Keychron V1 Ultra ANSI
+        run: |
+          docker run --rm -e HOME=/tmp -v "$PWD":/workspaces/zmk -w /workspaces/zmk \
+            zmkfirmware/zmk-build-arm:3.5 bash -lc '
+              set -e
+              git config --global --add safe.directory /workspaces/zmk
+              if [ ! -d zephyr ] || [ ! -d modules ]; then
+                west init -l app
+                west update
+                west zephyr-export
+              fi
+              west build -s app -p -b keychron -d app/build -- -DSHIELD=keychron_v1_ultra_ansi
+            '
+      - name: Upload test firmware
+        uses: actions/upload-artifact@v4
+        with:
+          name: keychron-v1-ultra-mixed-rgb-verify
+          path: app/build/zephyr/zmk.bin
+          if-no-files-found: error

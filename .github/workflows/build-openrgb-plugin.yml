@@ -3,7 +3,14 @@ name: build-openrgb-plugin
 on:
   push:
     branches: [feature/cyan-blue-splash-overlay]
+    paths:
+      - 'openrgb-plugin/**'
+      - '.github/workflows/build-openrgb-plugin.yml'
   workflow_dispatch:
+
+concurrency:
+  group: build-openrgb-plugin-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -39,7 +46,7 @@ jobs:
         shell: cmd
         working-directory: openrgb-plugin
         run: |
-          if exist release\\OpenRGBKeychronUltraPlugin.dll copy release\\OpenRGBKeychronUltraPlugin.dll .
+          if exist release\OpenRGBKeychronUltraPlugin.dll copy release\OpenRGBKeychronUltraPlugin.dll .
           dir /s /b *.dll
 
       - name: Upload plugin DLL

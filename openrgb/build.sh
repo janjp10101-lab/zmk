@@ -26,7 +26,7 @@ IMAGE="${ZMK_BUILD_IMAGE:-zmkfirmware/zmk-build-arm:3.5}"
 # west topdir = this repo's root (holds app/; zephyr/ + modules/ land here on init).
 WORKSPACE="${ZMK_WORKSPACE:-$(cd "$SCRIPT_DIR/.." && pwd)}"
 BOARD="keychron"                                     # RTL8762GTU board; defines RTK_DFU that the Ultra shields require
-SHIELD="${1:-keychron_v6_ultra_ansi}"                # keyboard shield; override via first arg
+SHIELD="${1:-keychron_v1_ultra_ansi}"                # keyboard shield; override via first arg
 OUTDIR="$SCRIPT_DIR/output"
 # ---------------------------------------------------------------------------
 

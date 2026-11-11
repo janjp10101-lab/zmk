@@ -120,6 +120,12 @@ int eeconfig_init_custom_rgb(void) {
     }
     settings_load_subtree("keychron");
 
+    /* The first test preset requires a genuinely static orange foreground. */
+    per_key_rgb_type = PER_KEY_RGB_SOLID;
+    for (uint8_t i = 0; i < RGB_MATRIX_LED_COUNT; i++) {
+        per_key_led[i] = (HSV){21, 255, 255};
+    }
+
     update_mixed_rgb_effect_count();
 #ifdef CONFIG_RETAIL_DEMO_ENABLE
     if (retail_demo_enable && zmk_rgb_matrix_get_mode() != RGB_EFFECT_MIXED_RGB) {

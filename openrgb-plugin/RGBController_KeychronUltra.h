@@ -29,6 +29,9 @@ public:
 
     void        DeviceUpdateMode();
     void        SetCustomMode();
+    bool        ConfigureMixedLayer(unsigned char layer, unsigned char effect, unsigned char hue, unsigned char sat, unsigned char speed);
+    bool        SaveMixedRGB();
+    void        ActivateMixedRGB();
 
 private:
     void        UpdateLEDsLocked();         /* caller must hold controller_mutex */

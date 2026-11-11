@@ -38,7 +38,7 @@ OpenRGBPluginInfo OpenRGBKeychronUltraPlugin::GetPluginInfo()
     OpenRGBPluginInfo info;
     info.Name          = "Keychron Ultra Mixed RGB";
     info.Description    = "Three-layer firmware-rendered Mixed RGB control for Keychron Ultra keyboards "
-                          "keyboards running custom ZMK firmware (issue #893).";
+                          "running custom ZMK firmware.";
     info.Version        = "0.1.0";
     info.Commit         = "";
     info.URL            = "https://github.com/janjp10101-lab/zmk/tree/mixed-rgb-overlay-test/openrgb/plugin";

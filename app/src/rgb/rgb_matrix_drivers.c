@@ -3,6 +3,9 @@
 #include <zephyr/drivers/led_strip.h>
 #include "rgb_matrix_conf.h"
 #include "rgb_matrix.h"
+#ifdef CONFIG_KEYCHRON_RGB_ENABLE
+#include "keychron/rgb_matrix_kb_config.h"
+#endif
 
 #include <zmk/activity.h>
 #include <zmk/usb.h>

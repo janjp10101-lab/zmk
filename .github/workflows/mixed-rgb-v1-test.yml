@@ -1,13 +1,9 @@
 name: mixed-rgb-v1-test
+# Build every branch update while this test branch is active.
 
 on:
   push:
     branches: [mixed-rgb-overlay-test]
-    paths:
-      - 'app/src/rgb/**'
-      - 'app/src/launcher/openrgb.c'
-      - 'app/boards/shields/keychron_v1_ultra_ansi/**'
-      - '.github/workflows/mixed-rgb-v1-test.yml'
   workflow_dispatch:
 
 jobs:

@@ -6,6 +6,11 @@ on:
     branches: [mixed-rgb-overlay-test]
   workflow_dispatch:
 
+# Keep only the newest firmware build for this test branch.
+concurrency:
+  group: mixed-rgb-v1-test-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-v1-ultra:
     runs-on: ubuntu-latest

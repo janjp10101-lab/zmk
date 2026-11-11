@@ -191,3 +191,31 @@ void RGBController_KeychronUltra::SetCustomMode()
 {
     active_mode = MODE_DIRECT;
 }
+
+
+bool RGBController_KeychronUltra::ConfigureMixedLayer(unsigned char layer,
+                                                        unsigned char effect,
+                                                        unsigned char hue,
+                                                        unsigned char sat,
+                                                        unsigned char speed)
+{
+    std::lock_guard<std::mutex> lock(controller_mutex);
+    return controller != nullptr
+        && controller->SetMixedRGBLayerEffect(layer, effect, hue, sat, speed);
+}
+
+bool RGBController_KeychronUltra::SaveMixedRGB()
+{
+    std::lock_guard<std::mutex> lock(controller_mutex);
+    return controller != nullptr && controller->SaveMixedRGBSettings();
+}
+
+void RGBController_KeychronUltra::ActivateMixedRGB()
+{
+    std::lock_guard<std::mutex> lock(controller_mutex);
+    if(controller != nullptr)
+    {
+        controller->SetDirectMode(false);
+        controller->SetMixedRGBMode();
+    }
+}

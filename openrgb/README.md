@@ -1,36 +1,31 @@
-# OpenRGB direct control for the Keychron V6 Ultra 8K
+# OpenRGB Mixed RGB for the Keychron V1 Ultra 8K
 
-This branch (`openrgb`) adds host-driven per-key RGB control to the Keychron V6
-Ultra 8K firmware - implementing what [ZMK issue #893](https://github.com/zmkfirmware/zmk/issues/893)
-asks for - plus the host tooling to build and flash it.
+This branch adds protocol-v2 Mixed RGB controls to the Keychron V1 Ultra 8K
+firmware while retaining the original Direct RGB mode as a fallback.
 
-> **Personal project, shared as-is.** I built this for my own keyboard and put
-> it on GitHub in case it's useful to someone else. No support, warranty, or
-> maintenance is promised - use it at your own risk, and understand that
-> flashing custom firmware is inherently do-it-yourself.
+The first preset is the agreed three-layer design:
 
-It rides the keyboard's existing raw-HID (VIA) channel with a new `id_openrgb`
-(0x16) command: enter/exit a **direct mode** where the host owns the 108-LED
-matrix, stream colors, and query the LED layout. When the host stops or the
-keyboard goes wireless, control auto-hands-back to your onboard/Launcher
-lighting after ~3 s. Caps/Num-Lock indicators stay visible on top.
+- 23 fixed orange-lit keys (the physical keycaps remain grey);
+- a cyan-blue spiral across the other 59 LEDs;
+- a yellow reactive splash blended over the cyan layer when keys are pressed.
 
-The matching OpenRGB plugin lives in a separate repo:
-**https://github.com/naaraxi/keychron_ultra_openrgb**
+OpenRGB configures the layers. The keyboard renders the animation locally, so
+closing OpenRGB does not stop the effects. The new architecture is documented
+in [MIXED_RGB_OVERLAY_ARCHITECTURE.md](MIXED_RGB_OVERLAY_ARCHITECTURE.md).
 
-## What changed (vs upstream `rtl8762g`)
-- `app/src/launcher/openrgb.c` - the 0x16 command handler.
-- `app/src/rgb/rgb_matrix.c` - direct mode (effect bypass + auto-hand-back
-  watchdog) and the lock-indicator overlay.
-- `app/src/rgb/keychron/keychron_rgb.c` - `os_indicator_owns_led()` so host
-  writes don't fight the caps/num overlay (no flicker).
-- `Kconfig` / headers - `ZMK_OPENRGB`.
+The OpenRGB plugin source and its Windows build workflow live in
+[`openrgb-plugin/`](../openrgb-plugin/). The plugin adds a three-layer editor
+with on/off and speed controls, plus a Mixed RGB device mode.
+
+> **Personal project, shared as-is.** Custom firmware is do-it-yourself. Keep
+> the stock firmware/recovery route available and do not flash an image for a
+> different keyboard model.
 
 ## Build
 Needs Docker. From the repo root:
 
 ```bash
-./openrgb/build.sh                       # keychron_v6_ultra_ansi
+./openrgb/build.sh                       # keychron_v1_ultra_ansi
 ./openrgb/build.sh keychron_q6_ultra_ansi   # another Ultra shield
 ```
 
@@ -64,9 +59,11 @@ without installing OpenRGB. It works on any Ultra board, because it asks the
 keyboard how many LEDs it has instead of assuming.
 
 ```bash
-sudo ./openrgb/openrgb_test.py count    # just asks the LED count, nothing lights up
-sudo ./openrgb/openrgb_test.py demo     # cycles red/green/blue/white across all keys
-sudo ./openrgb/openrgb_test.py hold     # holds one color for a while
+sudo ./openrgb/openrgb_test.py count       # asks LED count
+sudo ./openrgb/openrgb_test.py mixed-info  # verifies three-layer protocol
+sudo ./openrgb/openrgb_test.py mixed-demo  # applies orange/cyan/yellow preset
+sudo ./openrgb/openrgb_test.py demo        # legacy Direct RGB test
+sudo ./openrgb/openrgb_test.py hold        # legacy Direct RGB hold test
 ```
 
 If `count` gets an answer, the OpenRGB firmware is running. Stock firmware does

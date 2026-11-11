@@ -36,6 +36,7 @@ enum openrgb_subcommand {
     openrgb_mixed_get_effects = 0x13,    // args[0]=layer, args[1]=start, args[2]=count
     openrgb_mixed_set_effects = 0x14,    // args[0]=layer, args[1]=start, args[2]=count, then 8-byte records
     openrgb_set_mixed_mode = 0x15,       // args[0]=1 enter Mixed RGB, 0 restore previous mode
+    openrgb_mixed_save = 0x16,           // persist current layer masks and effects
 };
 
 static uint8_t openrgb_previous_mode = RGB_MATRIX_DEFAULT_MODE;
@@ -115,6 +116,15 @@ void openrgb_handle_command(uint8_t *data, uint8_t length) {
     case openrgb_mixed_set_effects:
         openrgb_forward_mixed_command(data, length);
         break;
+
+    case openrgb_mixed_save: {
+        extern void kc_rgb_matrix_rx(uint8_t *data, uint8_t length);
+        uint8_t original = data[1];
+        data[1] = 2; // Keychron RGB_SAVE command
+        kc_rgb_matrix_rx(data, length);
+        data[1] = original;
+        break;
+    }
 
     case openrgb_set_mixed_mode:
 #ifdef CONFIG_KEYCHRON_RGB_ENABLE

@@ -72,10 +72,12 @@ bool mixed_rgb(effect_params_t *params) {
         mixed_rgb_reset();
     }
 
+    zmk_rgb_matrix_mixed_frame_begin();
     for (int8_t i = EFFECT_LAYERS - 1; i >= 0; i--) {
         params->region = i;
         ret = multiple_rgb_effect_runner(params);
     }
+    zmk_rgb_matrix_mixed_frame_flush();
 
     return ret;
 }

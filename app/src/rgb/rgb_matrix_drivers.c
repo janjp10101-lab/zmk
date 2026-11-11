@@ -3,6 +3,9 @@
 #include <zephyr/drivers/led_strip.h>
 #include "rgb_matrix_conf.h"
 #include "rgb_matrix.h"
+#ifdef CONFIG_KEYCHRON_RGB_ENABLE
+#include "keychron/rgb_matrix_kb_config.h"
+#endif
 
 #include <zmk/activity.h>
 #include <zmk/usb.h>
@@ -12,8 +15,10 @@
 #include <zmk/events/position_state_changed.h>
 #include <zmk/workqueue.h>
 #include <zephyr/kernel.h>
+#include <zephyr/sys/util.h>
 #include <zephyr/settings/settings.h>
 #include <stdlib.h>
+#include <string.h>
 #include <zmk/rgb_underglow.h>
 #include <zmk/endpoints.h>
 #include <zmk/leds.h>
@@ -137,23 +142,73 @@ void zmk_rgb_matrix_set_color(int index, uint8_t red, uint8_t green, uint8_t blu
 #ifdef CONFIG_KEYCHRON_RGB_ENABLE
 extern uint8_t rgb_regions[];
 
+/* Capture each effect into its own frame, then composite once per LED. */
+static RGB mixed_layer_frame[EFFECT_LAYERS][RGB_MATRIX_LED_COUNT];
+static uint8_t mixed_layer_valid[EFFECT_LAYERS][RGB_MATRIX_LED_COUNT];
+static bool mixed_rgb_capture_frame;
+
+void zmk_rgb_matrix_mixed_frame_begin(void) {
+    memset(mixed_layer_valid, 0, sizeof(mixed_layer_valid));
+    mixed_rgb_capture_frame = true;
+}
+
+static uint8_t mixed_rgb_blend_channel(uint8_t base, uint8_t overlay, uint8_t alpha) {
+    return (uint8_t)(((uint16_t)base * (255 - alpha) +
+                      (uint16_t)overlay * alpha) / 255);
+}
+
+void zmk_rgb_matrix_mixed_frame_flush(void) {
+    if (rgb_matrix_device == NULL) {
+        mixed_rgb_capture_frame = false;
+        return;
+    }
+
+    for (uint8_t i = 0; i < RGB_MATRIX_LED_COUNT; i++) {
+        RGB out = {0, 0, 0};
+
+        /* Cyan spiral base. */
+        if (mixed_layer_valid[1][i])
+            out = mixed_layer_frame[1][i];
+
+        /* Yellow reactive wave blends over the cyan base only while active. */
+        if (mixed_layer_valid[2][i]) {
+            RGB overlay = mixed_layer_frame[2][i];
+            uint8_t alpha = MAX(overlay.r, MAX(overlay.g, overlay.b));
+            out.r = mixed_rgb_blend_channel(out.r, overlay.r, alpha);
+            out.g = mixed_rgb_blend_channel(out.g, overlay.g, alpha);
+            out.b = mixed_rgb_blend_channel(out.b, overlay.b, alpha);
+        }
+
+        /* The fixed orange keys are always the top-priority layer. */
+        if (mixed_layer_valid[0][i])
+            out = mixed_layer_frame[0][i];
+
+        zmk_rgb_matrix_set_color(i, out.r, out.g, out.b);
+    }
+
+    mixed_rgb_capture_frame = false;
+}
+
 void zmk_rgb_matrix_region_set_color(uint8_t region, int index, uint8_t red, uint8_t green,
                                      uint8_t blue) {
-    if (rgb_matrix_device == NULL)
+    if (rgb_matrix_device == NULL || index < 0 || index >= RGB_MATRIX_LED_COUNT ||
+        region >= EFFECT_LAYERS)
         return;
 
-    if (rgb_regions[index] & (1u << region)) {
+    if ((rgb_regions[index] & (1u << region)) == 0)
+        return;
 
-        struct led_rgb pixels = {red, green, blue};
-        int err = led_strip_update_rgb(rgb_matrix_device, &pixels, index + 1);
-        if (err < 0) {
-            LOG_ERR("Failed to update the RGB strip (%d)", err);
-        }
+    if (mixed_rgb_capture_frame) {
+        mixed_layer_frame[region][index] = (RGB){red, green, blue};
+        mixed_layer_valid[region][index] = 1;
+        return;
     }
+
+    zmk_rgb_matrix_set_color(index, red, green, blue);
 }
 
 void zmk_rgb_matrix_region_set_color_all(uint8_t region, uint8_t red, uint8_t green, uint8_t blue) {
-    if (rgb_matrix_device == NULL)
+    if (rgb_matrix_device == NULL || region >= EFFECT_LAYERS)
         return;
     for (int i = 0; i < STRIP_NUM_PIXELS; i++)
         if (rgb_regions[i] & (1u << region))

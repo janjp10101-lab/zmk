@@ -10,6 +10,13 @@
 #include <thread>
 #include <hidapi.h>
 #include <QLabel>
+#include <QComboBox>
+#include <QSlider>
+#include <QGroupBox>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QFormLayout>
+#include <QPushButton>
 
 
 /*---------------------------------------------------------------------------*\
@@ -194,19 +201,142 @@ void OpenRGBKeychronUltraPlugin::DetectControllers()
 
 QWidget* OpenRGBKeychronUltraPlugin::GetWidget()
 {
-    /*-----------------------------------------------------------------------*\
-    | OpenRGB's OpenRGBPluginContainer does plugin_widget->setParent(this)    |
-    | with NO null check, so a plugin MUST return a valid QWidget even when   |
-    | it only registers a device. Return a small info label.                 |
-    \*-----------------------------------------------------------------------*/
-    QLabel* label = new QLabel(
-        "Keychron Ultra series (custom ZMK firmware)\n\n"
-        "Select \"Direct\" to drive per-key RGB from OpenRGB, or \"Mixed RGB\" "
-        "to run the keyboard's native orange / cyan-blue spiral / yellow-splash layers.");
-    label->setAlignment(Qt::AlignCenter);
-    label->setWordWrap(true);
-    label->setMargin(20);
-    return(label);
+    QWidget* panel = new QWidget();
+    QVBoxLayout* root = new QVBoxLayout(panel);
+
+    QLabel* intro = new QLabel(
+        "Keychron Ultra Mixed RGB\\n"
+        "Configure the three firmware-rendered layers. The orange mask is the "
+        "preconfigured 23-key layout; the remaining 59 keys carry the cyan spiral "
+        "and yellow reactive splash.");
+    intro->setWordWrap(true);
+    root->addWidget(intro);
+
+    QGroupBox* orange_box = new QGroupBox("Layer 1 — fixed orange");
+    QVBoxLayout* orange_layout = new QVBoxLayout(orange_box);
+    QComboBox* orange_mode = new QComboBox();
+    orange_mode->addItem("Static orange (23 keys)", 1);
+    orange_mode->addItem("Off", 0);
+    orange_layout->addWidget(orange_mode);
+    root->addWidget(orange_box);
+
+    QGroupBox* cyan_box = new QGroupBox("Layer 2 — cyan-blue spiral");
+    QFormLayout* cyan_layout = new QFormLayout(cyan_box);
+    QComboBox* cyan_mode = new QComboBox();
+    cyan_mode->addItem("Cyan-blue spiral", 1);
+    cyan_mode->addItem("Off", 0);
+    QSlider* cyan_speed = new QSlider(Qt::Horizontal);
+    cyan_speed->setRange(1, 255);
+    cyan_speed->setValue(127);
+    QLabel* cyan_speed_value = new QLabel("127");
+    QHBoxLayout* cyan_speed_row = new QHBoxLayout();
+    cyan_speed_row->addWidget(cyan_speed, 1);
+    cyan_speed_row->addWidget(cyan_speed_value);
+    cyan_layout->addRow("Effect", cyan_mode);
+    cyan_layout->addRow("Speed", cyan_speed_row);
+    QObject::connect(cyan_speed, &QSlider::valueChanged, [cyan_speed_value](int value) {
+        cyan_speed_value->setText(QString::number(value));
+    });
+    root->addWidget(cyan_box);
+
+    QGroupBox* yellow_box = new QGroupBox("Layer 3 — yellow reactive splash");
+    QFormLayout* yellow_layout = new QFormLayout(yellow_box);
+    QComboBox* yellow_mode = new QComboBox();
+    yellow_mode->addItem("Yellow reactive splash", 1);
+    yellow_mode->addItem("Off", 0);
+    QSlider* yellow_speed = new QSlider(Qt::Horizontal);
+    yellow_speed->setRange(1, 255);
+    yellow_speed->setValue(127);
+    QLabel* yellow_speed_value = new QLabel("127");
+    QHBoxLayout* yellow_speed_row = new QHBoxLayout();
+    yellow_speed_row->addWidget(yellow_speed, 1);
+    yellow_speed_row->addWidget(yellow_speed_value);
+    yellow_layout->addRow("Effect", yellow_mode);
+    yellow_layout->addRow("Speed", yellow_speed_row);
+    QObject::connect(yellow_speed, &QSlider::valueChanged, [yellow_speed_value](int value) {
+        yellow_speed_value->setText(QString::number(value));
+    });
+    root->addWidget(yellow_box);
+
+    QHBoxLayout* actions = new QHBoxLayout();
+    QPushButton* apply = new QPushButton("Apply layers");
+    QPushButton* save = new QPushButton("Save to keyboard");
+    actions->addWidget(apply);
+    actions->addWidget(save);
+    root->addLayout(actions);
+
+    QLabel* status = new QLabel("Select Mixed RGB mode on the Keychron device, then apply.");
+    status->setWordWrap(true);
+    root->addWidget(status);
+    root->addStretch(1);
+
+    QObject::connect(apply, &QPushButton::clicked, [this, orange_mode, cyan_mode,
+                                                    yellow_mode, cyan_speed,
+                                                    yellow_speed, status]() {
+        const bool ok = ApplyMixedLayers(orange_mode->currentData().toInt() != 0,
+                                         cyan_mode->currentData().toInt() != 0,
+                                         yellow_mode->currentData().toInt() != 0,
+                                         (unsigned char)cyan_speed->value(),
+                                         (unsigned char)yellow_speed->value());
+        status->setText(ok ? "Mixed RGB layers applied" :
+                             "Could not apply layers — check that the V1 firmware is updated");
+    });
+
+    QObject::connect(save, &QPushButton::clicked, [this, status]() {
+        status->setText(SaveMixedLayers() ? "Settings saved to keyboard" :
+                                            "Save failed — apply the layers first");
+    });
+
+    return panel;
+}
+
+bool OpenRGBKeychronUltraPlugin::ApplyMixedLayers(bool orange, bool cyan, bool yellow,
+                                                   unsigned char cyan_speed,
+                                                   unsigned char yellow_speed)
+{
+    std::lock_guard<std::mutex> lock(registered_mutex);
+    if(rm == nullptr || registered.empty())
+        return false;
+
+    const std::vector<RGBController*>& live = rm->GetRGBControllers();
+    bool applied = false;
+    bool success = true;
+
+    for(RGBController_KeychronUltra* rgb : registered)
+    {
+        if(std::find(live.begin(), live.end(), (RGBController*)rgb) == live.end())
+            continue;
+
+        applied = true;
+        success = rgb->ConfigureMixedLayer(0, orange ? 1 : 0, 20, 255, 127) && success;
+        success = rgb->ConfigureMixedLayer(1, cyan ? 3 : 0, 138, 255, cyan_speed) && success;
+        success = rgb->ConfigureMixedLayer(2, yellow ? 25 : 0, 43, 255, yellow_speed) && success;
+        rgb->ActivateMixedRGB();
+    }
+
+    return applied && success;
+}
+
+bool OpenRGBKeychronUltraPlugin::SaveMixedLayers()
+{
+    std::lock_guard<std::mutex> lock(registered_mutex);
+    if(rm == nullptr || registered.empty())
+        return false;
+
+    const std::vector<RGBController*>& live = rm->GetRGBControllers();
+    bool saved = false;
+    bool success = true;
+
+    for(RGBController_KeychronUltra* rgb : registered)
+    {
+        if(std::find(live.begin(), live.end(), (RGBController*)rgb) == live.end())
+            continue;
+
+        saved = true;
+        success = rgb->SaveMixedRGB() && success;
+    }
+
+    return saved && success;
 }
 
 QMenu* OpenRGBKeychronUltraPlugin::GetTrayMenu()

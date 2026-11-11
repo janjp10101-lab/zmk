@@ -124,8 +124,7 @@ void RGBController_KeychronUltra::UpdateLEDsLocked()
         return;                   /* torn down by a rescan - nothing to drive */
     }
 
-    /* Firmware renders the three Mixed RGB layers locally; do not stream frames. */
-    controller->SetMixedMode(true);
+    /* Firmware renders the three Mixed RGB layers locally; no host frame is streamed. */
 
     /*-----------------------------------------------------------------------*\
     | A reconnect can move the keyboard to a different HID node, so refresh   |
@@ -153,22 +152,9 @@ void RGBController_KeychronUltra::UpdateSingleLED(int /*led*/)
 void RGBController_KeychronUltra::DeviceUpdateMode()
 {
     std::lock_guard<std::mutex> lock(controller_mutex);
-
-    if(controller == nullptr)
+    if(controller != nullptr)
     {
-        return;
-    }
-
-    /*-----------------------------------------------------------------------*\
-    | Direct is the only mode the host drives. Entering it takes the keyboard |
-    | over and starts the keepalive. Leaving it gives the board back to its   |
-    | own lighting.                                                           |
-    \*-----------------------------------------------------------------------*/
-    controller->SetDirectMode(active_mode == MODE_DIRECT);
-
-    if(active_mode == MODE_DIRECT)
-    {
-        UpdateLEDsLocked();       /* we already hold the lock, so do not take it again */
+        controller->SetMixedMode(true);
     }
 }
 

@@ -2,7 +2,7 @@ name: build-openrgb-plugin
 
 on:
   push:
-    branches: [feature/cyan-blue-splash-overlay]
+    branches: [feature/cyan-blue-splash-overlay, mixed-rgb-overlay-test-v2]
     paths:
       - 'openrgb-plugin/**'
       - '.github/workflows/build-openrgb-plugin.yml'

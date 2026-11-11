@@ -1,6 +1,6 @@
 # Mixed RGB overlay test architecture
 
-Status: experimental firmware implementation is in the `mixed-rgb-overlay-test` branch. The initial V1 Ultra ANSI build passed; the latest mask/blending/protocol fixes are being rebuilt. This is not yet hardware-verified or safe to flash as a finished release.
+Status: experimental firmware and OpenRGB plugin both compile successfully from commit `43bbea7191e23a6d06d95b150c8c9042a39929e9`. Windows and Linux plugin artifacts are available. The keyboard behavior is not yet hardware-verified; treat this as a test build, not a finished release.
 
 ## Target
 
@@ -76,4 +76,4 @@ The plugin should:
 
 ## Open item
 
-The 23 orange-lit LED indices are encoded in `app/boards/shields/keychron_v1_ultra_ansi/rgb_matrix_config.h` and preselected in the OpenRGB panel. Firmware compilation and plugin compilation pass; physical keyboard behavior and the final OpenRGB/HID round trip still require hardware testing. The original upstream plugin is preserved; a writable three-layer plugin implementation now lives in `openrgb/plugin/`. Its Linux CI build has passed. It exposes three effect layers, speed/enabled controls, the orange 23-key selector, and save-to-firmware.
+The 23 orange-lit LED indices are encoded in `app/boards/shields/keychron_v1_ultra_ansi/rgb_matrix_config.h` and preselected in the OpenRGB panel. Firmware and plugin compilation pass, including Windows and Linux plugin builds. Physical keyboard behavior and the final OpenRGB/HID round trip still require hardware testing; see `MIXED_RGB_HARDWARE_TEST.md`. The original upstream plugin is preserved; a writable three-layer plugin implementation now lives in `openrgb/plugin/`. Its Linux CI build has passed. It exposes three effect layers, speed/enabled controls, the orange 23-key selector, and save-to-firmware.

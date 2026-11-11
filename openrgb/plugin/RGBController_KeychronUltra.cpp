@@ -176,6 +176,14 @@ bool RGBController_KeychronUltra::SetMixedRegions(const std::vector<unsigned cha
     return controller != nullptr && controller->SetMixedRegions(masks);
 }
 
+bool RGBController_KeychronUltra::GetMixedEffect(unsigned int layer, unsigned char& effect,
+                                                   unsigned char& hue, unsigned char& sat,
+                                                   unsigned char& speed)
+{
+    std::lock_guard<std::mutex> lock(controller_mutex);
+    return controller != nullptr && controller->GetMixedEffect(layer, effect, hue, sat, speed);
+}
+
 bool RGBController_KeychronUltra::SetMixedEffect(unsigned int layer, unsigned char effect,
                                                   unsigned char hue, unsigned char sat,
                                                   unsigned char speed)

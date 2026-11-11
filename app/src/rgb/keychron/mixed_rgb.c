@@ -37,6 +37,21 @@ uint8_t typingHeatmap = 0;
 
 static bool multiple_rgb_effect_runner(effect_params_t *params);
 
+void mixed_rgb_update_region_masks(void) {
+    for (uint8_t i = 0; i < RGB_MATRIX_LED_COUNT; i++) {
+        uint8_t region = regions[i];
+        uint8_t mask = region < EFFECT_LAYERS ? (1u << region) : 0;
+
+        // Region 1 is the cyan spiral base. Give those same LEDs membership
+        // in region 2 as well so the yellow reactive splash can overlay it.
+        if (region == 1 && EFFECT_LAYERS > 2) {
+            mask |= (1u << 2);
+        }
+
+        rgb_regions[i] = mask;
+    }
+}
+
 void mixed_rgb_reset(void) {
     typingHeatmap = 0;
     for (uint8_t i = 0; i < EFFECT_LAYERS; i++) {
@@ -66,13 +81,14 @@ bool mixed_rgb(effect_params_t *params) {
 
     extern uint8_t rgb_regions[RGB_MATRIX_LED_COUNT];
     if (params->init) {
-        memcpy(rgb_regions, regions, RGB_MATRIX_LED_COUNT);
+        mixed_rgb_update_region_masks();
         memset(layer_effect_index, 0, sizeof(layer_effect_index));
 
         mixed_rgb_reset();
     }
 
-    for (int8_t i = EFFECT_LAYERS - 1; i >= 0; i--) {
+    // Render in ascending priority: orange base, cyan spiral, yellow overlay.
+    for (uint8_t i = 0; i < EFFECT_LAYERS; i++) {
         params->region = i;
         ret = multiple_rgb_effect_runner(params);
     }

@@ -34,6 +34,7 @@ bool led_eff_indicators(effect_params_t *params);
 
 bool mixed_rgb(effect_params_t *params);
 bool per_key_rgb(effect_params_t *params);
+bool yellow_splash_overlay(effect_params_t *params);
 
 #ifdef CONFIG_KEYCHRON_RGB_ENABLE
 #define zmk_rgb_matrix_set_color(i, r, g, b)                                                       \
@@ -116,6 +117,9 @@ rgb_effect_func rgb_effect_funcs[] = {
 #endif
 #ifdef ENABLE_RGB_EFFECT_MIXED_RGB
     mixed_rgb,
+#endif
+#ifdef ENABLE_RGB_EFFECT_YELLOW_SPLASH_OVERLAY
+    yellow_splash_overlay,
 #endif
 
 #ifdef ENABLE_RGB_EFFECT_RUN

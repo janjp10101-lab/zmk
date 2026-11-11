@@ -83,6 +83,8 @@ public:
 
     void           SetDirectMode(bool enable);
     void           SetMixedRGBMode(); // select the firmware's native Mixed RGB effect
+    bool           SetMixedRGBLayerEffect(unsigned char layer, unsigned char effect, unsigned char hue, unsigned char sat, unsigned char speed);
+    bool           SaveMixedRGBSettings();
     void           EnsureDirect();         // enter direct + start keepalive if not already
     void           SetLEDs(const std::vector<RGBColor>& colors);
 

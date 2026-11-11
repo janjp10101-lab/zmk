@@ -142,7 +142,7 @@ void zmk_rgb_matrix_region_set_color(uint8_t region, int index, uint8_t red, uin
     if (rgb_matrix_device == NULL)
         return;
 
-    if (rgb_regions[index] == region) {
+    if (rgb_regions[index] & (1u << region)) {
 
         struct led_rgb pixels = {red, green, blue};
         int err = led_strip_update_rgb(rgb_matrix_device, &pixels, index + 1);
@@ -156,7 +156,7 @@ void zmk_rgb_matrix_region_set_color_all(uint8_t region, uint8_t red, uint8_t gr
     if (rgb_matrix_device == NULL)
         return;
     for (int i = 0; i < STRIP_NUM_PIXELS; i++)
-        if (((g_led_config.flags[i] & 0xF0) >> 4) == region)
+        if (rgb_regions[i] & (1u << region))
             zmk_rgb_matrix_set_color(i, red, green, blue);
 }
 #endif

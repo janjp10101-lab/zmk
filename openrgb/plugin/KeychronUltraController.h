@@ -81,6 +81,8 @@ public:
     bool           SetMixedMode(bool enable);
     bool           GetMixedRegions(std::vector<unsigned char>& masks);
     bool           SetMixedRegions(const std::vector<unsigned char>& masks);
+    bool           GetMixedEffect(unsigned int layer, unsigned char& effect, unsigned char& hue,
+                                  unsigned char& sat, unsigned char& speed);
     bool           SetMixedEffect(unsigned int layer, unsigned char effect, unsigned char hue,
                                   unsigned char sat, unsigned char speed);
     bool           SaveMixed();

@@ -34,12 +34,12 @@
 OpenRGBPluginInfo OpenRGBKeychronUltraPlugin::GetPluginInfo()
 {
     OpenRGBPluginInfo info;
-    info.Name          = "Keychron Ultra (OpenRGB + Mixed RGB)";
-    info.Description    = "Direct per-key RGB control plus native Mixed RGB mode for Keychron "
+    info.Name          = "Keychron Ultra (OpenRGB Mixed RGB Layers)";
+    info.Description    = "Direct per-key RGB control plus a three-layer Mixed RGB editor for Keychron "
                           "V- and Q-series Ultra keyboards running custom ZMK firmware.";
-    info.Version        = "0.6.0";
+    info.Version        = "0.7.0";
     info.Commit         = "";
-    info.URL            = "https://github.com/janjp10101-lab/zmk/tree/feature/cyan-blue-splash-overlay/openrgb-plugin";
+    info.URL            = "https://github.com/janjp10101-lab/zmk/tree/mixed-rgb-overlay-test-v2/openrgb-plugin";
     info.Location       = OPENRGB_PLUGIN_LOCATION_SETTINGS;
     info.Label          = "Keychron Ultra";
     info.TabIconString  = "";
@@ -265,7 +265,7 @@ QWidget* OpenRGBKeychronUltraPlugin::GetWidget()
     actions->addWidget(save);
     root->addLayout(actions);
 
-    QLabel* status = new QLabel("Select Mixed RGB mode on the Keychron device, then apply.");
+    QLabel* status = new QLabel("Apply the layers to switch the keyboard into Mixed RGB mode.");
     status->setWordWrap(true);
     root->addWidget(status);
     root->addStretch(1);

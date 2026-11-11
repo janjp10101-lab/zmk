@@ -1,30 +1,31 @@
-# OpenRGB direct control for the Keychron V6 Ultra 8K
+# OpenRGB Mixed RGB test for the Keychron V1 Ultra 8K
 
-This branch (`openrgb`) adds host-driven per-key RGB control to the Keychron V6
-Ultra 8K firmware - implementing what [ZMK issue #893](https://github.com/zmkfirmware/zmk/issues/893)
-asks for - plus the host tooling to build and flash it.
+This branch adds an OpenRGB configuration protocol and a three-layer firmware
+compositor for the Keychron V1 Ultra 8K. OpenRGB configures the effects; the
+keyboard renders them locally, so it does not need a PC-driven frame stream.
 
 > **Personal project, shared as-is.** I built this for my own keyboard and put
 > it on GitHub in case it's useful to someone else. No support, warranty, or
 > maintenance is promised - use it at your own risk, and understand that
 > flashing custom firmware is inherently do-it-yourself.
 
-It rides the keyboard's existing raw-HID (VIA) channel with a new `id_openrgb`
-(0x16) command: enter/exit a **direct mode** where the host owns the 108-LED
-matrix, stream colors, and query the LED layout. When the host stops or the
-keyboard goes wireless, control auto-hands-back to your onboard/Launcher
-lighting after ~3 s. Caps/Num-Lock indicators stay visible on top.
+It rides the existing raw-HID channel with `id_openrgb` (0x16). The legacy
+Direct RGB commands remain available, while protocol v2 adds Mixed RGB layer
+configuration. The first preset is fixed orange keys, a cyan-blue spiral, and
+a yellow reactive splash. Three overlapping layers are composited in firmware:
+cyan base, yellow reactive blend, then orange fixed-key priority. The 23 orange
+LED indices are selected in the test harness/plugin rather than guessed.
 
-The matching OpenRGB plugin lives in a separate repo:
-**https://github.com/naaraxi/keychron_ultra_openrgb**
+The original Direct-mode plugin is archived and read-only. The new Mixed RGB
+plugin UI will be developed separately against this firmware protocol after
+the first V1 build and on-keyboard test pass.
 
 ## What changed (vs upstream `rtl8762g`)
-- `app/src/launcher/openrgb.c` - the 0x16 command handler.
-- `app/src/rgb/rgb_matrix.c` - direct mode (effect bypass + auto-hand-back
-  watchdog) and the lock-indicator overlay.
-- `app/src/rgb/keychron/keychron_rgb.c` - `os_indicator_owns_led()` so host
-  writes don't fight the caps/num overlay (no flicker).
-- `Kconfig` / headers - `ZMK_OPENRGB`.
+- `app/src/launcher/openrgb.c` - version 2 Mixed RGB configuration commands.
+- `app/src/rgb/keychron/mixed_rgb.c` - three effect layers.
+- `app/src/rgb/rgb_matrix_drivers.c` - per-layer frame buffers and compositor.
+- `app/src/rgb/keychron/keychron_rgb.c` - orange/cyan/yellow test preset and
+  versioned settings keys; legacy Direct mode remains as a fallback.
 
 ## Build
 Needs Docker. From the repo root:

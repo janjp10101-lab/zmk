@@ -1,6 +1,6 @@
 # Mixed RGB overlay test architecture
 
-Status: design baseline for the `mixed-rgb-overlay-test` branch. This is not a flashable firmware build yet.
+Status: experimental firmware implementation is in the `mixed-rgb-overlay-test` branch. The initial V1 Ultra ANSI build passed; the latest mask/blending/protocol fixes are being rebuilt. This is not yet hardware-verified or safe to flash as a finished release.
 
 ## Target
 
@@ -8,7 +8,7 @@ Replace the OpenRGB plugin's current continuously streamed Direct RGB workflow w
 
 The first test preset is intentionally limited to three effects:
 
-1. Layer 0 — fixed orange: a 23-LED mask, static orange, highest priority.
+1. Layer 0 — fixed orange: a 23-LED mask, static orange, highest priority. Confirmed LED indices: `0, 5, 6, 7, 8, 13, 28, 29, 30, 43, 44, 45, 56, 57, 58, 59, 71, 72, 73, 74, 76, 77, 78`.
 2. Layer 1 — cyan-blue spiral: covers every LED not in the orange mask.
 3. Layer 2 — yellow reactive splash: reacts to keypresses on the non-orange LEDs and blends above the cyan base.
 
@@ -20,7 +20,7 @@ The physical keycaps remain grey. The orange/cyan/yellow describe illumination o
 - `app/src/rgb/keychron/keychron_rgb.c` already exposes layer/effect configuration and region data through Keychron's existing RGB command path.
 - `app/src/rgb/keychron/per_key_rgb.c` already contains a reactive splash implementation driven by `g_last_hit_tracker`.
 - `app/src/launcher/openrgb.c` currently exposes the separate `id_openrgb` (0x16) Direct RGB protocol.
-- `app/src/rgb/rgb_matrix_drivers.c` currently routes region writes directly to the LED strip and treats regions as exclusive IDs.
+- `app/src/rgb/rgb_matrix_drivers.c` now captures per-layer frames and composites cyan base, yellow splash, then orange foreground. Region bytes are membership masks (bit 0/1/2).
 
 ## Rendering change
 
@@ -50,7 +50,7 @@ The protocol needs commands to:
 - read/write each layer's LED membership mask in bounded chunks;
 - request a save to persistent settings.
 
-Use 32-byte reports, validate every layer/index/count before copying, and keep the legacy Direct commands available as a recovery path. The first OpenRGB UI should expose only the three agreed effects and their basic settings, not the full Keychron effect catalogue.
+Use 32-byte reports, validate every layer/index/count before copying, and keep the legacy Direct commands available as a recovery path. The firmware reports protocol version 1 so existing Direct-only plugin builds continue to detect it; Mixed RGB commands are additive. The first OpenRGB UI should expose only the three agreed effects and their basic settings, not the full Keychron effect catalogue.
 
 ## OpenRGB plugin
 
@@ -76,4 +76,4 @@ The plugin should:
 
 ## Open item
 
-The exact 23 orange-lit LED indices must be confirmed from the intended key layout before hard-coding the default mask. Until then, use a temporary editable mask and do not guess the 23 positions.
+The 23 orange-lit LED indices are now encoded in `app/boards/shields/keychron_v1_ultra_ansi/rgb_matrix_config.h`. The plugin UI and hardware behavior still need implementation/verification. The archived upstream plugin is read-only; a writable fork or separate plugin repository is needed for the full three-layer UI.

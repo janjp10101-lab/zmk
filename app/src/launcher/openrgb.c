@@ -41,6 +41,7 @@ enum openrgb_subcommand {
 
 static uint8_t openrgb_previous_mode = RGB_MATRIX_DEFAULT_MODE;
 
+#ifdef CONFIG_KEYCHRON_RGB_ENABLE
 static void openrgb_forward_mixed_command(uint8_t *data, uint8_t length) {
     extern void kc_rgb_matrix_rx(uint8_t *data, uint8_t length);
     uint8_t original = data[1];
@@ -48,6 +49,7 @@ static void openrgb_forward_mixed_command(uint8_t *data, uint8_t length) {
     kc_rgb_matrix_rx(data, length);
     data[1] = original;
 }
+#endif
 
 void openrgb_handle_command(uint8_t *data, uint8_t length) {
     uint8_t *sub = &data[1];
@@ -114,7 +116,11 @@ void openrgb_handle_command(uint8_t *data, uint8_t length) {
     case openrgb_mixed_set_regions:
     case openrgb_mixed_get_effects:
     case openrgb_mixed_set_effects:
+#ifdef CONFIG_KEYCHRON_RGB_ENABLE
         openrgb_forward_mixed_command(data, length);
+#else
+        data[0] = id_unhandled;
+#endif
         break;
 
     case openrgb_set_mixed_mode:
@@ -137,11 +143,15 @@ void openrgb_handle_command(uint8_t *data, uint8_t length) {
         break;
 
     case openrgb_mixed_save: {
+#ifdef CONFIG_KEYCHRON_RGB_ENABLE
         extern void kc_rgb_matrix_rx(uint8_t *data, uint8_t length);
         uint8_t original = data[1];
         data[1] = 2; // Keychron RGB_SAVE command
         kc_rgb_matrix_rx(data, length);
         data[1] = original;
+#else
+        data[0] = id_unhandled;
+#endif
         break;
     }
 

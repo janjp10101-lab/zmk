@@ -238,6 +238,21 @@ QWidget* OpenRGBKeychronUltraPlugin::GetWidget()
         return(panel);
     }
 
+    unsigned char currentEffects[3] = {0, 0, 0};
+    unsigned char currentHues[3] = {0, 0, 0};
+    unsigned char currentSats[3] = {0, 0, 0};
+    unsigned char currentSpeeds[3] = {127, 127, 127};
+    for(unsigned int layer = 0; layer < 3; ++layer)
+    {
+        if(!target->GetMixedEffect(layer, currentEffects[layer], currentHues[layer],
+                                   currentSats[layer], currentSpeeds[layer]))
+        {
+            root->addWidget(new QLabel("Could not read the current layer settings from firmware."));
+            root->addStretch();
+            return(panel);
+        }
+    }
+
     QCheckBox* enabled[3];
     QSlider* speed[3];
     const char* layerNames[3] = {
@@ -245,18 +260,15 @@ QWidget* OpenRGBKeychronUltraPlugin::GetWidget()
         "Layer 2 — cyan-blue spiral",
         "Layer 3 — yellow reactive splash"
     };
-    const unsigned char effects[3] = {23, 3, 22};
-    const unsigned char hues[3] = {21, 137, 43};
-
     for(int i = 0; i < 3; ++i)
     {
         QGroupBox* group = new QGroupBox(layerNames[i]);
         QHBoxLayout* row = new QHBoxLayout(group);
         enabled[i] = new QCheckBox("Enabled");
-        enabled[i]->setChecked(true);
+        enabled[i]->setChecked(currentEffects[i] != 0);
         speed[i] = new QSlider(Qt::Horizontal);
         speed[i]->setRange(1, 255);
-        speed[i]->setValue(127);
+        speed[i]->setValue(currentSpeeds[i] == 0 ? 127 : currentSpeeds[i]);
         row->addWidget(enabled[i]);
         row->addWidget(new QLabel("Speed"));
         row->addWidget(speed[i], 1);

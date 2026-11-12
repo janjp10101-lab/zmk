@@ -99,13 +99,16 @@ bool mixed_rgb(effect_params_t *params) {
 
 bool multiple_rgb_effect_runner(effect_params_t *params) {
     HSV hsv = zmk_rgb_matrix_get_hsv();
-    uint8_t backup_value = hsv.v;
+    uint8_t master_value = hsv.v;
+    uint8_t backup_value = 0;
 
     bool transation = false;
     bool rendering = false;
     uint8_t layer = params->region;
 
     uint8_t effect_index = layer_effect_index[layer];
+    backup_value = ((uint16_t)effect_list[layer][effect_index].value * master_value) / 255;
+    hsv.v = backup_value;
 
     if (effect_list[layer][effect_index].effect == RGB_EFFECT_TYPING_HEATMAP)
         typingHeatmap |= 0x01 << layer;

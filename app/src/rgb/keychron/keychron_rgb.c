@@ -85,6 +85,7 @@ void eeconfig_reset_custom_rgb(void) {
     effect_list[0][0].hue = 230;
     effect_list[0][0].sat = 255;
     effect_list[0][0].speed = 127;
+    effect_list[0][0].value = 255;
     effect_list[0][0].time = 0;
 
     // Layer 1: acid-green spiral brightness, preserving the selected hue.
@@ -92,6 +93,7 @@ void eeconfig_reset_custom_rgb(void) {
     effect_list[1][0].hue = 88;
     effect_list[1][0].sat = 255;
     effect_list[1][0].speed = 127;
+    effect_list[1][0].value = 255;
     effect_list[1][0].time = 0;
 
     // Layer 2: ultraviolet reactive splash.
@@ -99,6 +101,7 @@ void eeconfig_reset_custom_rgb(void) {
     effect_list[2][0].hue = 190;
     effect_list[2][0].sat = 255;
     effect_list[2][0].speed = 127;
+    effect_list[2][0].value = 255;
     effect_list[2][0].time = 0;
 
     // update_mixed_rgb_effect_count();
@@ -257,7 +260,7 @@ bool mixed_rgb_set_regions(uint8_t *data) {
 
     return true;
 }
-#define EFFECT_DATA_LEN 8
+#define EFFECT_DATA_LEN 9
 
 static bool mixed_rgb_get_effect_list(uint8_t *data) {
     uint8_t region = data[0];
@@ -272,7 +275,8 @@ static bool mixed_rgb_get_effect_list(uint8_t *data) {
         data[2 + i * EFFECT_DATA_LEN] = effect_list[region][start + i].hue;
         data[3 + i * EFFECT_DATA_LEN] = effect_list[region][start + i].sat;
         data[4 + i * EFFECT_DATA_LEN] = effect_list[region][start + i].speed;
-        memcpy(&data[5 + i * EFFECT_DATA_LEN], &effect_list[region][start + i].time, 4);
+        data[5 + i * EFFECT_DATA_LEN] = effect_list[region][start + i].value;
+        memcpy(&data[6 + i * EFFECT_DATA_LEN], &effect_list[region][start + i].time, 4);
     }
 
     return true;
@@ -295,7 +299,8 @@ bool mixed_rgb_set_effect_list(uint8_t *data) {
         effect_list[region][start + i].hue = data[4 + i * EFFECT_DATA_LEN];
         effect_list[region][start + i].sat = data[5 + i * EFFECT_DATA_LEN];
         effect_list[region][start + i].speed = data[6 + i * EFFECT_DATA_LEN];
-        memcpy(&effect_list[region][start + i].time, &data[7 + i * EFFECT_DATA_LEN], 4);
+        effect_list[region][start + i].value = data[7 + i * EFFECT_DATA_LEN];
+        memcpy(&effect_list[region][start + i].time, &data[8 + i * EFFECT_DATA_LEN], 4);
     }
     update_mixed_rgb_effect_count();
 
@@ -309,7 +314,7 @@ void kc_rgb_save_worker(struct k_work *work) {
                       sizeof(per_key_rgb_type));
     settings_save_one("keychron/per_key_led_v2", (const void *)per_key_led, sizeof(per_key_led));
     settings_save_one("keychron/layer_masks_v2", (const void *)regions, sizeof(regions));
-    settings_save_one("keychron/effect_list_v2", (const void *)effect_list, sizeof(effect_list));
+    settings_save_one("keychron/effect_list_v3", (const void *)effect_list, sizeof(effect_list));
 }
 K_WORK_DELAYABLE_DEFINE(kc_rgb_save_work, kc_rgb_save_worker);
 
@@ -559,7 +564,7 @@ static int keychron_handle_set(const char *name, size_t len, settings_read_cb re
             return err;
         }
 
-    } else if (settings_name_steq(name, "effect_list_v2", NULL)) {
+    } else if (settings_name_steq(name, "effect_list_v3", NULL)) {
         if (len != sizeof(effect_list)) {
             LOG_ERR("Invalid effect_list size (got %d expected %d)", len, sizeof(effect_list));
             return -EINVAL;

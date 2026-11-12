@@ -34,6 +34,7 @@ typedef struct {
     uint8_t hue;
     uint8_t sat;
     uint8_t speed;
+    uint8_t value;
     uint32_t time;
 } __attribute__((packed)) effect_config_t;
 

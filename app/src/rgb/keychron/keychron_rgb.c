@@ -77,26 +77,26 @@ void eeconfig_reset_custom_rgb(void) {
     memset(effect_list, 0, sizeof(effect_list));
 
     for (uint8_t i = 0; i < RGB_MATRIX_LED_COUNT; i++) {
-        per_key_led[i] = (HSV){21, 255, 255}; // orange fixed-key layer
+        per_key_led[i] = (HSV){230, 255, 255}; // neon-pink fixed-key layer
     }
 
-    // Layer 0: static per-key orange (membership mask selects the 23 keys).
+    // Layer 0: static per-key neon pink (membership mask selects the 23 keys).
     effect_list[0][0].effect = RGB_EFFECT_PER_KEY_RGB;
-    effect_list[0][0].hue = 21;
+    effect_list[0][0].hue = 230;
     effect_list[0][0].sat = 255;
     effect_list[0][0].speed = 127;
     effect_list[0][0].time = 0;
 
-    // Layer 1: cyan-blue spiral brightness, preserving the selected hue.
+    // Layer 1: acid-green spiral brightness, preserving the selected hue.
     effect_list[1][0].effect = RGB_EFFECT_SPIRAL_BRIGHTNESS;
-    effect_list[1][0].hue = 137;
+    effect_list[1][0].hue = 88;
     effect_list[1][0].sat = 255;
     effect_list[1][0].speed = 127;
     effect_list[1][0].time = 0;
 
-    // Layer 2: solid yellow reactive splash.
+    // Layer 2: ultraviolet reactive splash.
     effect_list[2][0].effect = RGB_EFFECT_SOLID_SPLASH;
-    effect_list[2][0].hue = 43;
+    effect_list[2][0].hue = 190;
     effect_list[2][0].sat = 255;
     effect_list[2][0].speed = 127;
     effect_list[2][0].time = 0;
@@ -120,10 +120,10 @@ int eeconfig_init_custom_rgb(void) {
     }
     settings_load_subtree("keychron");
 
-    /* The first test preset requires a genuinely static orange foreground. */
+    /* The test preset keeps a genuinely static per-key foreground. */
     per_key_rgb_type = PER_KEY_RGB_SOLID;
     for (uint8_t i = 0; i < RGB_MATRIX_LED_COUNT; i++) {
-        per_key_led[i] = (HSV){21, 255, 255};
+        per_key_led[i] = (HSV){230, 255, 255};
     }
 
     update_mixed_rgb_effect_count();

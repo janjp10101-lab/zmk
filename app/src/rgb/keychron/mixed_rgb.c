@@ -82,9 +82,10 @@ bool mixed_rgb(effect_params_t *params) {
         zmk_rgb_matrix_mixed_frame_begin();
     }
 
+    ret = false;
     for (int8_t i = EFFECT_LAYERS - 1; i >= 0; i--) {
         params->region = i;
-        ret = multiple_rgb_effect_runner(params);
+        ret |= multiple_rgb_effect_runner(params);
     }
 
     struct rgb_matrix_limits_t limits = zmk_rgb_matrix_get_limits(params->iter);

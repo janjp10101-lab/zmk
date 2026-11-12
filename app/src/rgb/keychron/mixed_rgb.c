@@ -15,7 +15,7 @@
  */
 
 #include "keychron_rgb_type.h"
-#include "../rgb_matrix_types.h"
+#include "../rgb_matrix.h"
 #include "rgb_matrix_kb_config.h"
 #include <zephyr/kernel.h>
 
@@ -72,12 +72,25 @@ bool mixed_rgb(effect_params_t *params) {
         mixed_rgb_reset();
     }
 
-    zmk_rgb_matrix_mixed_frame_begin();
+    /*
+     * RGB_MATRIX_LED_PROCESS_LIMIT renders the matrix in multiple passes
+     * (41 LEDs per pass on the 82-LED V1 Ultra). Keep one mixed frame alive
+     * across every pass: clearing the layer-valid map and flushing all LEDs
+     * after pass one made the unrendered half go black.
+     */
+    if (params->iter == 0) {
+        zmk_rgb_matrix_mixed_frame_begin();
+    }
+
     for (int8_t i = EFFECT_LAYERS - 1; i >= 0; i--) {
         params->region = i;
         ret = multiple_rgb_effect_runner(params);
     }
-    zmk_rgb_matrix_mixed_frame_flush();
+
+    struct rgb_matrix_limits_t limits = zmk_rgb_matrix_get_limits(params->iter);
+    if (limits.led_max_index >= RGB_MATRIX_LED_COUNT) {
+        zmk_rgb_matrix_mixed_frame_flush();
+    }
 
     return ret;
 }

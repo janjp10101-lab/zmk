@@ -37,6 +37,7 @@ enum openrgb_subcommand {
     openrgb_mixed_set_effects = 0x14,    // args[0]=layer, args[1]=start, args[2]=count, then 8-byte records
     openrgb_set_mixed_mode = 0x15,       // args[0]=1 enter Mixed RGB, 0 restore previous mode
     openrgb_mixed_save = 0x16,           // persist current layer masks and effects
+    openrgb_set_master_brightness = 0x17, // args[0] = global brightness 0..255
 };
 
 static uint8_t openrgb_previous_mode = RGB_MATRIX_DEFAULT_MODE;
@@ -123,6 +124,13 @@ void openrgb_handle_command(uint8_t *data, uint8_t length) {
         data[1] = 2; // Keychron RGB_SAVE command
         kc_rgb_matrix_rx(data, length);
         data[1] = original;
+        save_rgb_matrix_config_rightnow();
+        break;
+    }
+
+    case openrgb_set_master_brightness: {
+        HSV hsv = zmk_rgb_matrix_get_hsv();
+        zmk_rgb_matrix_sethsv_no_save(hsv.h, hsv.s, args[0]);
         break;
     }
 

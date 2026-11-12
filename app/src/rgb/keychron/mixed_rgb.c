@@ -99,6 +99,7 @@ bool mixed_rgb(effect_params_t *params) {
 
 bool multiple_rgb_effect_runner(effect_params_t *params) {
     HSV hsv = zmk_rgb_matrix_get_hsv();
+    HSV master_hsv = hsv;
     uint8_t master_value = hsv.v;
     uint8_t backup_value = 0;
 
@@ -172,6 +173,7 @@ bool multiple_rgb_effect_runner(effect_params_t *params) {
     if (transation) {
         zmk_rgb_matrix_sethsv_no_save(hsv.h, hsv.s, backup_value);
     }
+    zmk_rgb_matrix_sethsv_no_save(master_hsv.h, master_hsv.s, master_hsv.v);
 
     return rendering;
 }

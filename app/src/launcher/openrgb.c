@@ -19,7 +19,7 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #include "launcher.h"
 #include "../rgb/rgb_matrix.h"
 
-#define OPENRGB_PROTOCOL_VERSION 2
+#define OPENRGB_PROTOCOL_VERSION 3
 
 // LED position/flag table (for OpenRGB's key-to-LED map).
 extern led_config_t g_led_config;
@@ -34,7 +34,7 @@ enum openrgb_subcommand {
     openrgb_mixed_get_regions = 0x11,    // args[0]=start, args[1]=count -> membership masks
     openrgb_mixed_set_regions = 0x12,    // args[0]=start, args[1]=count, args[2..]=masks
     openrgb_mixed_get_effects = 0x13,    // args[0]=layer, args[1]=start, args[2]=count
-    openrgb_mixed_set_effects = 0x14,    // args[0]=layer, args[1]=start, args[2]=count, then 8-byte records
+    openrgb_mixed_set_effects = 0x14,    // args[0]=layer, args[1]=start, args[2]=count, then 9-byte records
     openrgb_set_mixed_mode = 0x15,       // args[0]=1 enter Mixed RGB, 0 restore previous mode
     openrgb_mixed_save = 0x16,           // persist current layer masks and effects
     openrgb_set_master_brightness = 0x17, // args[0] = global brightness 0..255

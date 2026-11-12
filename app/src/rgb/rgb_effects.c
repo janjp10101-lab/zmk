@@ -800,7 +800,8 @@ HSV splash_change(HSV hsv, int16_t dx, int16_t dy, uint8_t dist, uint16_t tick) 
 }
 
 bool splash(effect_params_t *params) {
-    return effect_reactive_splash_calc(qsub8(g_last_hit_tracker.count, 1), params, &splash_change);
+    // Render every still-active keypress so overlapping splash waves coexist.
+    return effect_reactive_splash_calc(0, params, &splash_change);
 }
 
 #endif
@@ -816,8 +817,8 @@ HSV solid_splash_change(HSV hsv, int16_t dx, int16_t dy, uint8_t dist, uint16_t 
 }
 
 bool solid_splash(effect_params_t *params) {
-    return effect_reactive_splash_calc(qsub8(g_last_hit_tracker.count, 1), params,
-                                       &solid_splash_change);
+    // Render every still-active keypress so overlapping splash waves coexist.
+    return effect_reactive_splash_calc(0, params, &solid_splash_change);
 }
 
 #endif

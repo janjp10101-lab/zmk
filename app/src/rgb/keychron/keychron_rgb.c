@@ -301,6 +301,15 @@ bool mixed_rgb_set_effect_list(uint8_t *data) {
         effect_list[region][start + i].speed = data[6 + i * EFFECT_DATA_LEN];
         effect_list[region][start + i].value = data[7 + i * EFFECT_DATA_LEN];
         memcpy(&effect_list[region][start + i].time, &data[8 + i * EFFECT_DATA_LEN], 4);
+
+        /* The static per-key renderer reads hue/saturation from per_key_led. */
+        if (region == 0 && effect_list[region][start + i].effect == RGB_EFFECT_PER_KEY_RGB) {
+            per_key_rgb_type = PER_KEY_RGB_SOLID;
+            for (uint8_t led = 0; led < RGB_MATRIX_LED_COUNT; led++) {
+                per_key_led[led].h = effect_list[region][start + i].hue;
+                per_key_led[led].s = effect_list[region][start + i].sat;
+            }
+        }
     }
     update_mixed_rgb_effect_count();
 

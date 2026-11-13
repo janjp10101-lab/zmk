@@ -76,33 +76,56 @@ void eeconfig_reset_custom_rgb(void) {
     memcpy(regions, default_region, RGB_MATRIX_LED_COUNT);
     memset(effect_list, 0, sizeof(effect_list));
 
+#if defined(CONFIG_SHIELD_KEYCHRON_V1_ULTRA_ANSI)
+    // V1 Ultra ANSI only: distinct light-orange static keys and warm-cream spiral.
     for (uint8_t i = 0; i < RGB_MATRIX_LED_COUNT; i++) {
-        per_key_led[i] = (HSV){30, 85, 255}; // warm ivory fixed-key layer
+        per_key_led[i] = (HSV){20, 175, 255};
     }
 
-    // Layer 0: static warm ivory per-key foreground (membership mask selects the 23 keys).
+    effect_list[0][0].effect = RGB_EFFECT_PER_KEY_RGB;
+    effect_list[0][0].hue = 20;
+    effect_list[0][0].sat = 175;
+    effect_list[0][0].speed = 127;
+    effect_list[0][0].value = 255;
+    effect_list[0][0].time = 0;
+
+    effect_list[1][0].effect = RGB_EFFECT_SPIRAL_BRIGHTNESS;
+    effect_list[1][0].hue = 36;
+    effect_list[1][0].sat = 45;
+    effect_list[1][0].speed = 127;
+    effect_list[1][0].value = 255;
+    effect_list[1][0].time = 0;
+
+    effect_list[2][0].effect = RGB_EFFECT_SOLID_SPLASH;
+    effect_list[2][0].hue = 28;
+    effect_list[2][0].sat = 170;
+    effect_list[2][0].speed = 127;
+    effect_list[2][0].value = 255;
+    effect_list[2][0].time = 0;
+#else
+    // Preserve the existing palette on every other Keychron Ultra keyboard.
+    for (uint8_t i = 0; i < RGB_MATRIX_LED_COUNT; i++) {
+        per_key_led[i] = (HSV){30, 85, 255};
+    }
     effect_list[0][0].effect = RGB_EFFECT_PER_KEY_RGB;
     effect_list[0][0].hue = 30;
     effect_list[0][0].sat = 85;
     effect_list[0][0].speed = 127;
     effect_list[0][0].value = 255;
     effect_list[0][0].time = 0;
-
-    // Layer 1: soft warm-white spiral brightness.
     effect_list[1][0].effect = RGB_EFFECT_SPIRAL_BRIGHTNESS;
     effect_list[1][0].hue = 42;
     effect_list[1][0].sat = 80;
     effect_list[1][0].speed = 127;
     effect_list[1][0].value = 255;
     effect_list[1][0].time = 0;
-
-    // Layer 2: warm-white reactive splash.
     effect_list[2][0].effect = RGB_EFFECT_SOLID_SPLASH;
     effect_list[2][0].hue = 35;
     effect_list[2][0].sat = 55;
     effect_list[2][0].speed = 127;
     effect_list[2][0].value = 255;
     effect_list[2][0].time = 0;
+#endif
 
     // update_mixed_rgb_effect_count();
     // kc_rgb_save();

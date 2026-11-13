@@ -77,29 +77,29 @@ void eeconfig_reset_custom_rgb(void) {
     memset(effect_list, 0, sizeof(effect_list));
 
     for (uint8_t i = 0; i < RGB_MATRIX_LED_COUNT; i++) {
-        per_key_led[i] = (HSV){230, 255, 255}; // neon-pink fixed-key layer
+        per_key_led[i] = (HSV){32, 42, 255}; // warm ivory fixed-key layer
     }
 
-    // Layer 0: static per-key neon pink (membership mask selects the 23 keys).
+    // Layer 0: static warm ivory per-key foreground (membership mask selects the 23 keys).
     effect_list[0][0].effect = RGB_EFFECT_PER_KEY_RGB;
-    effect_list[0][0].hue = 230;
-    effect_list[0][0].sat = 255;
+    effect_list[0][0].hue = 32;
+    effect_list[0][0].sat = 42;
     effect_list[0][0].speed = 127;
     effect_list[0][0].value = 255;
     effect_list[0][0].time = 0;
 
-    // Layer 1: acid-green spiral brightness, preserving the selected hue.
+    // Layer 1: soft warm-white spiral brightness.
     effect_list[1][0].effect = RGB_EFFECT_SPIRAL_BRIGHTNESS;
-    effect_list[1][0].hue = 88;
-    effect_list[1][0].sat = 255;
+    effect_list[1][0].hue = 30;
+    effect_list[1][0].sat = 25;
     effect_list[1][0].speed = 127;
     effect_list[1][0].value = 255;
     effect_list[1][0].time = 0;
 
-    // Layer 2: ultraviolet reactive splash.
+    // Layer 2: warm-white reactive splash.
     effect_list[2][0].effect = RGB_EFFECT_SOLID_SPLASH;
-    effect_list[2][0].hue = 190;
-    effect_list[2][0].sat = 255;
+    effect_list[2][0].hue = 35;
+    effect_list[2][0].sat = 55;
     effect_list[2][0].speed = 127;
     effect_list[2][0].value = 255;
     effect_list[2][0].time = 0;
@@ -126,7 +126,7 @@ int eeconfig_init_custom_rgb(void) {
     /* The test preset keeps a genuinely static per-key foreground. */
     per_key_rgb_type = PER_KEY_RGB_SOLID;
     for (uint8_t i = 0; i < RGB_MATRIX_LED_COUNT; i++) {
-        per_key_led[i] = (HSV){230, 255, 255};
+        per_key_led[i] = (HSV){32, 42, 255};
     }
 
     update_mixed_rgb_effect_count();
@@ -321,9 +321,9 @@ void kc_rgb_save_worker(struct k_work *work) {
     settings_save_one("keychron/os_ind_cfg", (const void *)&os_ind_cfg, sizeof(os_ind_cfg));
     settings_save_one("keychron/per_key_rgb_type", (const void *)&per_key_rgb_type,
                       sizeof(per_key_rgb_type));
-    settings_save_one("keychron/per_key_led_v2", (const void *)per_key_led, sizeof(per_key_led));
+    settings_save_one("keychron/per_key_led_warm_v1", (const void *)per_key_led, sizeof(per_key_led));
     settings_save_one("keychron/layer_masks_v2", (const void *)regions, sizeof(regions));
-    settings_save_one("keychron/effect_list_v3", (const void *)effect_list, sizeof(effect_list));
+    settings_save_one("keychron/effect_list_warm_v1", (const void *)effect_list, sizeof(effect_list));
 }
 K_WORK_DELAYABLE_DEFINE(kc_rgb_save_work, kc_rgb_save_worker);
 
@@ -549,7 +549,7 @@ static int keychron_handle_set(const char *name, size_t len, settings_read_cb re
             return err;
         }
 
-    } else if (settings_name_steq(name, "per_key_led_v2", NULL)) {
+    } else if (settings_name_steq(name, "per_key_led_warm_v1", NULL)) {
         if (len != sizeof(per_key_led)) {
             LOG_ERR("Invalid per_key_led size (got %d expected %d)", len, sizeof(per_key_led));
             return -EINVAL;
@@ -573,7 +573,7 @@ static int keychron_handle_set(const char *name, size_t len, settings_read_cb re
             return err;
         }
 
-    } else if (settings_name_steq(name, "effect_list_v3", NULL)) {
+    } else if (settings_name_steq(name, "effect_list_warm_v1", NULL)) {
         if (len != sizeof(effect_list)) {
             LOG_ERR("Invalid effect_list size (got %d expected %d)", len, sizeof(effect_list));
             return -EINVAL;
